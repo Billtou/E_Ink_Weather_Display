@@ -1,0 +1,164 @@
+template:
+  - trigger:
+      - platform: time_pattern
+        # hours: /1
+        minutes: 1
+      - platform: homeassistant
+        event: start
+    action:
+      - service: weather.get_forecasts
+        data:
+          type: daily
+        target:
+          entity_id: weather.opencwb
+        response_variable: daily
+    sensor:
+      - name: Weather Interval
+        unique_id: 08128e00-6b12-443a-9e9c-ad3f57ec2da9
+        state: "{{ states('weather.opencwb') }}"
+        attributes:
+          temperature: "{{ state_attr('weather.opencwb', 'temperature') }}"
+          templow: "{{state_attr('weather.opencwb', 'templow')}}"
+          dew_point: "{{ state_attr('weather.opencwb', 'dew_point') }}"
+          temperature_unit: "{{ state_attr('weather.opencwb', 'temperature_unit') }}"
+          humidity: "{{ state_attr('weather.opencwb', 'humidity') }}"
+          cloud_coverage: "{{ state_attr('weather.opencwb', 'cloud_coverage') }}"
+          pressure: "{{ state_attr('weather.opencwb', 'pressure') }}"
+          pressure_unit: "{{ state_attr('weather.opencwb', 'pressure_unit') }}"
+          wind_bearing: "{{ state_attr('weather.opencwb', 'wind_bearing') }}"
+          wind_speed: "{{ state_attr('weather.opencwb', 'wind_speed') }}"
+          wind_speed_unit: "{{ state_attr('weather.opencwb', 'wind_speed_unit') }}"
+          visibility_unit: "{{ state_attr('weather.opencwb', 'visibility_unit') }}"
+          precipitation_unit: "{{ state_attr('weather.opencwb', 'precipitation_unit') }}"
+          forecast: "{{ daily['weather.opencwb'].forecast }}"
+
+  - sensor:
+      - name: "eink_sensors"
+        unique_id: 7d4a5b29-70c3-4fd0-9b8e-a79a3a3165d2
+        state: >
+          {{ states('weather.opencwb') }}
+        attributes:
+          today_temperature: >
+            {{ state_attr('weather.opencwb', 'temperature') | round }}°C
+          today_feel_like: >
+            {{ state_attr('weather.opencwb', 'apparent_temperature') | round }}°
+
+          forecast_weekday_1: >
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[1].datetime) | timestamp_custom('%a') }}
+          forecast_condition_1: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[1].condition }}
+          forecast_temperature_1: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[1].temperature | round }}°
+          forecast_templow_1: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[1].templow | round }}°
+
+          forecast_weekday_2: >
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[3].datetime) | timestamp_custom('%a') }}
+          forecast_condition_2: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[3].condition }}
+          forecast_temperature_2: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[3].temperature | round }}°
+          forecast_templow_2: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[3].templow | round }}°
+
+          forecast_weekday_3: >
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[5].datetime) | timestamp_custom('%a') }}
+          forecast_condition_3: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[5].condition }}
+          forecast_temperature_3: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[5].temperature | round }}°
+          forecast_templow_3: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[5].templow | round }}°
+
+          forecast_weekday_4: >
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[7].datetime) | timestamp_custom('%a') }}
+          forecast_condition_4: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[7].condition }}
+          forecast_temperature_4: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[7].temperature | round }}°
+          forecast_templow_4: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[7].templow | round }}°
+
+          forecast_weekday_5: >
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[9].datetime) | timestamp_custom('%a') }}
+          forecast_condition_5: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[9].condition }}
+          forecast_temperature_5: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[9].temperature | round }}°
+          forecast_templow_5: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[9].templow | round }}°
+
+          forecast_weekday_6: >
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[11].datetime) | timestamp_custom('%a') }}
+          forecast_condition_6: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[11].condition }}
+          forecast_temperature_6: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[11].temperature | round }}°
+          forecast_templow_6: >
+            {{ state_attr('sensor.weather_interval', 'forecast')[11].templow | round }}°
+  - sensor:
+      - platform: time_date
+        display_options:
+          - "time"
+          - "date"
+          - "date_time"
+          - "date_time_utc"
+          - "date_time_iso"
+          - "time_date"
+          - "time_utc"
+          - "beat"
+
+input_boolean:
+  eink_refresh_time:
+    name: "Eink Refresh Time"
+
+input_datetime:
+  eink_on_time:
+    name: eink_on_time
+    has_date: false
+    has_time: true
+    icon: mdi:timer-check-outline
+    initial: "06:00"
+  eink_off_time:
+    name: eink_off_time
+    has_date: false
+    has_time: true
+    icon: mdi:timer-cancel-outline
+    initial: "22:00"
+
+automation:
+  - alias: auto_time_on_off_e_paper
+    id: 4343a0ec-0b29-4d44-ab4d-7c7b81954a73
+    description: ""
+    trigger:
+      - platform: time
+        at: input_datetime.eink_on_time
+        id: on_eink
+      - platform: time
+        at: input_datetime.eink_off_time
+        id: off_eink
+    condition: []
+    action:
+      - choose:
+          - conditions:
+              - condition: trigger
+                id:
+                  - on_eink
+            sequence:
+              - service: input_boolean.turn_on
+                metadata: {}
+                data: {}
+                target:
+                  entity_id: input_boolean.eink_refresh_time
+      - choose:
+          - conditions:
+              - condition: trigger
+                id:
+                  - off_eink
+            sequence:
+              - service: input_boolean.turn_off
+                metadata: {}
+                data: {}
+                target:
+                  entity_id: input_boolean.eink_refresh_time
+    mode: single
