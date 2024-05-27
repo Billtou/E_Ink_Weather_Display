@@ -30,7 +30,7 @@ template:
           wind_speed_unit: "{{ state_attr('weather.opencwb', 'wind_speed_unit') }}"
           visibility_unit: "{{ state_attr('weather.opencwb', 'visibility_unit') }}"
           precipitation_unit: "{{ state_attr('weather.opencwb', 'precipitation_unit') }}"
-          forecast: "{{ daily['weather.opencwb'].forecast }}"
+          forecast: "{{ hourly['weather.opencwb'].forecast }}"
 
   - sensor:
       - name: "eink_sensors"
