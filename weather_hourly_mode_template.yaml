@@ -44,7 +44,7 @@ template:
             {{ state_attr('weather.opencwb', 'apparent_temperature') | round }}°
 
           forecast_weekday_1: >
-            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[0].datetime) | timestamp_custom('%a') }}
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[0].datetime) | timestamp_custom('%I:%M %p') }}
           forecast_condition_1: >
             {{ state_attr('sensor.weather_interval', 'forecast')[0].condition }}
           forecast_temperature_1: >
@@ -53,7 +53,7 @@ template:
             {{ state_attr('sensor.weather_interval', 'forecast')[0].templow | round }}°
 
           forecast_weekday_2: >
-            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[1].datetime) | timestamp_custom('%a') }}
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[1].datetime) | timestamp_custom('%I:%M %p') }}
           forecast_condition_2: >
             {{ state_attr('sensor.weather_interval', 'forecast')[1].condition }}
           forecast_temperature_2: >
@@ -62,7 +62,7 @@ template:
             {{ state_attr('sensor.weather_interval', 'forecast')[1].templow | round }}°
 
           forecast_weekday_3: >
-            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[2].datetime) | timestamp_custom('%a') }}
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[2].datetime) | timestamp_custom('%I:%M %p') }}
           forecast_condition_3: >
             {{ state_attr('sensor.weather_interval', 'forecast')[2].condition }}
           forecast_temperature_3: >
@@ -71,7 +71,7 @@ template:
             {{ state_attr('sensor.weather_interval', 'forecast')[2].templow | round }}°
 
           forecast_weekday_4: >
-            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[3].datetime) | timestamp_custom('%a') }}
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[3].datetime) | timestamp_custom('%I:%M %p') }}
           forecast_condition_4: >
             {{ state_attr('sensor.weather_interval', 'forecast')[3].condition }}
           forecast_temperature_4: >
@@ -80,7 +80,7 @@ template:
             {{ state_attr('sensor.weather_interval', 'forecast')[3].templow | round }}°
 
           forecast_weekday_5: >
-            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[4].datetime) | timestamp_custom('%a') }}
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[4].datetime) | timestamp_custom('%I:%M %p') }}
           forecast_condition_5: >
             {{ state_attr('sensor.weather_interval', 'forecast')[4].condition }}
           forecast_temperature_5: >
@@ -89,7 +89,7 @@ template:
             {{ state_attr('sensor.weather_interval', 'forecast')[4].templow | round }}°
 
           forecast_weekday_6: >
-            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[5].datetime) | timestamp_custom('%a') }}
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[5].datetime) | timestamp_custom('%I:%M %p') }}
           forecast_condition_6: >
             {{ state_attr('sensor.weather_interval', 'forecast')[5].condition }}
           forecast_temperature_6: >
