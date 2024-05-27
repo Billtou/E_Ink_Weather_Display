@@ -44,59 +44,59 @@ template:
             {{ state_attr('weather.opencwb', 'apparent_temperature') | round }}°
 
           forecast_weekday_1: >
-            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[1].datetime) | timestamp_custom('%a') }}
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[0].datetime) | timestamp_custom('%a') }}
           forecast_condition_1: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[1].condition }}
+            {{ state_attr('sensor.weather_interval', 'forecast')[0].condition }}
           forecast_temperature_1: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[1].temperature | round }}°
+            {{ state_attr('sensor.weather_interval', 'forecast')[0].temperature | round }}°
           forecast_templow_1: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[1].templow | round }}°
+            {{ state_attr('sensor.weather_interval', 'forecast')[0].templow | round }}°
 
           forecast_weekday_2: >
-            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[3].datetime) | timestamp_custom('%a') }}
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[1].datetime) | timestamp_custom('%a') }}
           forecast_condition_2: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[3].condition }}
+            {{ state_attr('sensor.weather_interval', 'forecast')[1].condition }}
           forecast_temperature_2: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[3].temperature | round }}°
+            {{ state_attr('sensor.weather_interval', 'forecast')[1].temperature | round }}°
           forecast_templow_2: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[3].templow | round }}°
+            {{ state_attr('sensor.weather_interval', 'forecast')[1].templow | round }}°
 
           forecast_weekday_3: >
-            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[5].datetime) | timestamp_custom('%a') }}
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[2].datetime) | timestamp_custom('%a') }}
           forecast_condition_3: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[5].condition }}
+            {{ state_attr('sensor.weather_interval', 'forecast')[2].condition }}
           forecast_temperature_3: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[5].temperature | round }}°
+            {{ state_attr('sensor.weather_interval', 'forecast')[2].temperature | round }}°
           forecast_templow_3: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[5].templow | round }}°
+            {{ state_attr('sensor.weather_interval', 'forecast')[2].templow | round }}°
 
           forecast_weekday_4: >
-            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[7].datetime) | timestamp_custom('%a') }}
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[3].datetime) | timestamp_custom('%a') }}
           forecast_condition_4: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[7].condition }}
+            {{ state_attr('sensor.weather_interval', 'forecast')[3].condition }}
           forecast_temperature_4: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[7].temperature | round }}°
+            {{ state_attr('sensor.weather_interval', 'forecast')[3].temperature | round }}°
           forecast_templow_4: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[7].templow | round }}°
+            {{ state_attr('sensor.weather_interval', 'forecast')[3].templow | round }}°
 
           forecast_weekday_5: >
-            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[9].datetime) | timestamp_custom('%a') }}
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[4].datetime) | timestamp_custom('%a') }}
           forecast_condition_5: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[9].condition }}
+            {{ state_attr('sensor.weather_interval', 'forecast')[4].condition }}
           forecast_temperature_5: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[9].temperature | round }}°
+            {{ state_attr('sensor.weather_interval', 'forecast')[4].temperature | round }}°
           forecast_templow_5: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[9].templow | round }}°
+            {{ state_attr('sensor.weather_interval', 'forecast')[4].templow | round }}°
 
           forecast_weekday_6: >
-            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[11].datetime) | timestamp_custom('%a') }}
+            {{as_timestamp(state_attr('sensor.weather_interval', 'forecast')[5].datetime) | timestamp_custom('%a') }}
           forecast_condition_6: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[11].condition }}
+            {{ state_attr('sensor.weather_interval', 'forecast')[5].condition }}
           forecast_temperature_6: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[11].temperature | round }}°
+            {{ state_attr('sensor.weather_interval', 'forecast')[5].temperature | round }}°
           forecast_templow_6: >
-            {{ state_attr('sensor.weather_interval', 'forecast')[11].templow | round }}°
-  - sensor:
+            {{ state_attr('sensor.weather_interval', 'forecast')[5].templow | round }}°
+  - sensor:  #若自身HA已建立，可註解掉。
       - platform: time_date
         display_options:
           - "time"
@@ -106,27 +106,26 @@ template:
           - "date_time_iso"
           - "time_date"
           - "time_utc"
-          - "beat"
 
-input_boolean:
+input_boolean:  #建立一個刷新開關助手
   eink_refresh_time:
     name: "Eink Refresh Time"
 
-input_datetime:
+input_datetime: #建立兩個時間助手
   eink_on_time:
     name: eink_on_time
     has_date: false
     has_time: true
     icon: mdi:timer-check-outline
-    initial: "06:00"
+    initial: "06:00"  #上午6點開始刷新螢幕
   eink_off_time:
     name: eink_off_time
     has_date: false
     has_time: true
     icon: mdi:timer-cancel-outline
-    initial: "22:00"
+    initial: "22:00" #下午10點停止刷新螢幕
 
-automation:
+automation:  #做個自動化，搭配時間助手到點打開或關閉刷新開關
   - alias: auto_time_on_off_e_paper
     id: 4343a0ec-0b29-4d44-ab4d-7c7b81954a73
     description: ""
