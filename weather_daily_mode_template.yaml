@@ -96,6 +96,7 @@ template:
             {{ state_attr('sensor.weather_interval', 'forecast')[11].temperature | round }}°
           forecast_templow_6: >
             {{ state_attr('sensor.weather_interval', 'forecast')[11].templow | round }}°
+            
   - sensor:  #若自身HA已建立，可註解掉。
       - platform: time_date
         display_options:
