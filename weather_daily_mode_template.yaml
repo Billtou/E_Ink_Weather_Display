@@ -1,6 +1,17 @@
+substitutions:
+  name: "weather-panel"
+  friendly_name: Weather Panel 
+  upper_devicename: "ESP32 7.5in RED BLACK WHITE"
+  project_name: "Taiwan Smart Home Technology.E-Paper Weather Panel"
+  project_version: "1.0"   
+  
 esphome:
-  name: "e-paper-dashboard"
-  friendly_name: E-Paper Dashboard
+  name: ${name}
+  friendly_name: ${friendly_name}
+  project:
+    name: "${project_name}"
+    version: "${project_version}"
+  comment: ${upper_devicename}    
 
 esp32:
   board: esp32dev
@@ -33,7 +44,7 @@ external_components:
       ref: waveshare-color-2023.12
     components: [ waveshare_epaper ]
 
-
+# macintosh.ttf
 # Include custom fonts
 font:
   #update time
@@ -41,7 +52,7 @@ font:
     id: font_smallest
     size: 12
     glyphs:    
-      ['/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', ':']  
+      ['/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', ':','L','a','s','t','u','p','d','e']  
 
   #forecast weekday     
   - file: 'fonts/Gotham-Rounded-Bold.ttf'
@@ -56,11 +67,11 @@ font:
        'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
        's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
       
-  - file: 'fonts/Gotham-Rounded-Book.ttf'
-    id: font_year
-    size: 52
-    glyphs:    
-      ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']       
+  # - file: 'fonts/Gotham-Rounded-Book.ttf'
+  #   id: font_year
+  #   size: 52
+  #   glyphs:    
+  #     ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']       
 
   - file: 'fonts/Gotham-Rounded-Book.ttf'
     id: font_month
@@ -78,7 +89,13 @@ font:
     id: font_small
     size: 30
     glyphs:    
-      ['%', '°', '/', ' ', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'C' , 'n', 'a','u','g','m','³','p','b','c','s','U','v']
+      ['!', ',', '.', '"', '%', '-', '_', ':', '°', '/',
+       '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ',
+       'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
+       'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 
+       'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
+       'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+       's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
 
   #forecast temperature
   - file: 'fonts/Gotham-Rounded-Bold.ttf'
@@ -88,11 +105,11 @@ font:
       ['°', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9','%']
 
   #Rooms name captial    
-  - file: 'fonts/Gotham-Rounded-Bold.ttf'
-    id: font_rooms_cap
-    size: 40
-    glyphs: 
-      ['A','M', 'S', 'G', 'L', 'B', 'K']
+  # - file: 'fonts/Gotham-Rounded-Bold.ttf'
+  #   id: font_rooms_cap
+  #   size: 40
+  #   glyphs: 
+  #     ['A','M', 'S', 'G', 'L', 'B', 'K']
 
   #Rooms name     
   - file: 'fonts/Gotham-Rounded-Bold.ttf'
@@ -129,17 +146,17 @@ font:
     glyphs:
       ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
       
-  - file: 'fonts/Gotham-Rounded-Bold.ttf'
-    id: font_time_large
-    size: 145
-    glyphs:
-      ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',':']
+  # - file: 'fonts/Gotham-Rounded-Bold.ttf'
+  #   id: font_time_large
+  #   size: 145
+  #   glyphs:
+  #     ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',':']
 
-  - file: 'fonts/materialdesignicons-webfont.ttf'
-    id: font_sun_text
-    size: 18
-    glyphs:    
-      ['%', '°', '/', ' ', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'C' , 'n', 'a','u','g','m','³','p',':']
+  # - file: 'fonts/materialdesignicons-webfont.ttf'
+  #   id: font_sun_text
+  #   size: 18
+  #   glyphs:    
+  #     ['%', '°', '/', ' ', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'C' , 'n', 'a','u','g','m','³','p',':']
 
   - file: 'fonts/materialdesignicons-webfont.ttf'
     id: icon_today
@@ -215,84 +232,10 @@ font:
 
 # Call Subway and Weather sensors from HA
 sensor:
-  - platform: homeassistant
-    entity_id: sensor.eink_sidebar_temperature
-    id: cube_temp
-
-  - platform: homeassistant
-    entity_id: sensor.eink_sidebar_humidity
-    id: cube_humidity
-    
-  - platform: homeassistant
-    entity_id: sensor.eink_sidebar_pm25
-    id: cube_pm25    
-
-  - platform: homeassistant
-    entity_id: sensor.eink_sidebar_co2
-    id: cube_co2
-
-  - platform: homeassistant
-    entity_id: sensor.eink_sidebar_tvoc
-    id: cube_tvoc
-
   - platform: wifi_signal
     name: "WiFi Signal"
     id: wifisignal
     update_interval: 600s
-
-# AQI INDEX SENSOR
-  - platform: copy
-    source_id: cube_pm25
-    id: pm_2_5
-    internal: true
-    accuracy_decimals: 0
-    filters:
-    - sliding_window_moving_average:
-        window_size: 5
-        send_every: 10
-    - throttle_average: 60s
-    - delta: 10        
-    on_value:
-      lambda: |-
-        // https://en.wikipedia.org/wiki/Air_quality_index#Computing_the_AQI
-        if (id(pm_2_5).state < 12.0) {
-          // good
-          id(aqi_color).publish_state("Green");
-          id(pm_2_5_aqi).publish_state((50.0 - 0.0) / (12.0 - 0.0) * (id(pm_2_5).state - 0.0) + 0.0);
-        } else if (id(pm_2_5).state < 35.4) {
-          // moderate
-          id(aqi_color).publish_state("yellow");
-          id(pm_2_5_aqi).publish_state((100.0 - 51.0) / (35.4 - 12.1) * (id(pm_2_5).state - 12.1) + 51.0);
-        } else if (id(pm_2_5).state < 55.4) {
-          // Unhealthy for Sensitive Groups
-          id(aqi_color).publish_state("Orange");
-          id(pm_2_5_aqi).publish_state((150.0 - 101.0) / (55.4 - 35.5) * (id(pm_2_5).state - 35.5) + 101.0);
-        } else if (id(pm_2_5).state < 150.4) {
-          // unhealthy
-          id(aqi_color).publish_state("Red");
-          id(pm_2_5_aqi).publish_state((200.0 - 151.0) / (150.4 - 55.5) * (id(pm_2_5).state - 55.5) + 151.0);
-        } else if (id(pm_2_5).state < 250.4) {
-          // very unhealthy
-          id(aqi_color).publish_state("Purple");
-          id(pm_2_5_aqi).publish_state((300.0 - 201.0) / (250.4 - 150.5) * (id(pm_2_5).state - 150.5) + 201.0);
-        } else if (id(pm_2_5).state < 350.4) {
-          // hazardous
-          id(aqi_color).publish_state("Brown");
-          id(pm_2_5_aqi).publish_state((400.0 - 301.0) / (350.4 - 250.5) * (id(pm_2_5).state - 250.5) + 301.0);
-        } else if (id(pm_2_5).state < 500.4) {
-          // hazardous 2
-          id(aqi_color).publish_state("Brown");
-          id(pm_2_5_aqi).publish_state((500.0 - 401.0) / (500.4 - 350.5) * (id(pm_2_5).state - 350.5) + 401.0);
-        }        
-# AQI RANGE SENSOR
-  - platform: template
-    # name: "AQI range"
-    icon: "mdi:air-filter"
-    accuracy_decimals: 0
-    state_class: measurement
-    device_class: aqi
-    id: pm_2_5_aqi 
-    
 
 text_sensor:
   - platform: homeassistant
@@ -508,6 +451,16 @@ text_sensor:
     id: aqi_color
     internal: true
 
+  - platform: wifi_info
+    ip_address:
+      name: "IP"      
+      icon: "mdi:ip-outline"
+    ssid:
+      name: "SSID"
+      icon: "mdi:router-wireless"
+    mac_address:
+      name: "MAC"
+      icon: "mdi:lan"
 select:
   - platform: template
     name: "Options Windows"
@@ -515,7 +468,7 @@ select:
     optimistic: true
     options:
       - sun_and_moon
-      - time
+      - half_hour
       - nothing
     initial_option: nothing
 
@@ -530,7 +483,7 @@ select:
     initial_option: weather_detail
 
   - platform: template
-    name: "Forcast Mode"
+    name: "Weekly Forcast Mode"
     id: forcast_mode
     optimistic: true
     options:
@@ -539,9 +492,22 @@ select:
       - low_rain
     initial_option: high_low    
 
+switch:
+  - platform: template
+    name: "show last updated"
+    id: show_last_updated
+    optimistic: true
+    entity_category: config
+    on_turn_on:
+      then:
+      - switch.turn_on: show_last_updated
+    on_turn_off:
+      then:
+      - switch.turn_off: show_last_updated     
+
 button:
   - platform: template
-    name: 'Nanual Refresh'
+    name: 'Manual Refresh'
     icon: 'mdi:update'
     on_press:
       then:
@@ -554,7 +520,7 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return id(options_windows).state == "time" ;'
+            lambda: 'return id(options_windows).state == "half_hour" ;'
           then:
             - component.update: 'my_display'
       - script.execute: time_mode_data_received
@@ -564,7 +530,7 @@ script:
     then:
       - if:
           condition:
-            lambda: 'return id(options_windows).state != "time" ;'
+            lambda: 'return id(options_windows).state != "half_hour" ;'
           then:
             - component.update: 'my_display'
       - script.execute: weather_data_received
@@ -601,7 +567,7 @@ color:
 
 # Pins for Waveshare ePaper ESP Board
 spi:
-  clk_pin: GPIO5
+  clk_pin: GPIO05
   mosi_pin: GPIO18
 
 # Now render everything on the ePaper screen.
@@ -613,7 +579,7 @@ display:
       number: GPIO19
       inverted: true
     reset_pin: GPIO21
-    reset_duration: 2ms
+    reset_duration: 3ms
     model: 7.50inv2b
     update_interval: never
     id: my_display
@@ -649,20 +615,23 @@ display:
             };
           //************************ Calendar ************************        
           //month text
-          it.strftime(10, 7, id(font_month),id(color_black), TextAlign::TOP_LEFT, "%b", id(ha_time).now());
+          std::string month = id(ha_time).now().strftime("%b");
+          std::transform(month.begin(), month.end(), month.begin(), ::toupper);
+          it.print(15, 7, id(font_month), id(color_black), TextAlign::TOP_LEFT, month.c_str());
+          //it.strftime(10, 7, id(font_month),id(color_black), TextAlign::TOP_LEFT, "%b", id(ha_time).now());
           //it.strftime(10, 7, id(font_month), id(color_black), TextAlign::TOP_LEFT, "%b", id(ha_time).now()).c_str()).upper();
 
           //day text
-          it.strftime(170, 60, id(font_day_large),id(color_red), TextAlign::TOP_RIGHT, "%d", id(ha_time).now());      
+          it.strftime(175, 60, id(font_day_large),id(color_red), TextAlign::TOP_RIGHT, "%d", id(ha_time).now());      
 
           //line horizontal 1 x,y,width,height
-          it.filled_rectangle(10, 170, 152, 6,id(color_red));
+          it.filled_rectangle(15, 165, 156, 6,id(color_red));
 
           //weekday text
-          it.strftime(10, 180, id(font_bold),id(color_black), TextAlign::TOP_LEFT, "%A", id(ha_time).now());
+          it.strftime(15, 180, id(font_bold),id(color_black), TextAlign::TOP_LEFT, "%A", id(ha_time).now());
 
           //***************************************** options_windows sidebar_mode *****************************************************
-          int room1_icon_x=10;
+          int room1_icon_x=15;
           int room1_icon_y=235;
           int room1_text_x=125;
           int icon_gap_y=43;
@@ -677,52 +646,62 @@ display:
           int room2_gap_x=150;
 
           if (id(sidebar_mode).state.c_str() == std::string("from_aircube"))  {
-              it.print(150, room2_name_y-3, id(font_rooms_name),id(color_black), TextAlign::BOTTOM_RIGHT,"AQI index :");
-              it.print(165, room2_name_y - 3, id(font_rooms_name), id(color_red), TextAlign::BOTTOM_LEFT, id(aqi_color).state.c_str());              
+              //it.print(150, room2_name_y-3, id(font_rooms_name),id(color_black), TextAlign::BOTTOM_RIGHT,"AQI index :");
+              //it.print(165, room2_name_y - 3, id(font_rooms_name), id(color_red), TextAlign::BOTTOM_LEFT, id(aqi_color).state.c_str());              
 
               //sensor icon
               int room2_icon_y=300;
-              it.print(room1_icon_x, room2_icon_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F050F"); //temp
-              it.print(room1_icon_x, room2_icon_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F058E"); //humidity
-              it.print(room1_icon_x, room2_icon_y+icon_gap_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F0BAC"); //pm25
-              it.print(room1_icon_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F07E4"); //co2
-              it.print(room1_icon_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT,"\U000F0438"); //tvoc
+              //it.print(room1_icon_x, room2_icon_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F050F"); //temp
+              //it.print(room1_icon_x, room2_icon_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F058E"); //humidity
+              //it.print(room1_icon_x, room2_icon_y+icon_gap_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F0BAC"); //pm25
+              //it.print(room1_icon_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F07E4"); //co2
+              //it.print(room1_icon_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT,"\U000F0438"); //tvoc
 
               //sensor data
               int room2_data_y=room2_icon_y+2;
-              it.printf(room1_data_x, room2_icon_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%.0f",id(cube_temp).state); //temp
-              it.printf(room1_data_x, room2_icon_y+icon_gap_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%.0f%",id(cube_humidity).state); //humidity
-              it.printf(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%.0f",id(cube_pm25).state); //pm25
-              it.printf(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y, id(font_small),id(color_red),TextAlign::BOTTOM_RIGHT, "%.0f",id(cube_co2).state); //co2
-              it.printf(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y+icon_gap_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%.0f%",id(cube_tvoc).state); //tvoc
+              //it.printf(room1_data_x, room2_icon_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%.0f",id(cube_temp).state); //temp
+              //it.printf(room1_data_x, room2_icon_y+icon_gap_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%.0f%",id(cube_humidity).state); //humidity
+              //it.printf(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%.0f",id(cube_pm25).state); //pm25
+              //it.printf(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y, id(font_small),id(color_red),TextAlign::BOTTOM_RIGHT, "%.0f",id(cube_co2).state); //co2
+              //it.printf(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y+icon_gap_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%.0f%",id(cube_tvoc).state); //tvoc
 
-              it.print(room1_data_x, room2_icon_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"°C");
-              it.print(room1_data_x, room2_icon_y+icon_gap_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"%");
-              it.print(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"m3");
-              it.print(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"ppm");
-              it.print(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y+icon_gap_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"ppb");
+              //it.print(room1_data_x, room2_icon_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"°C");
+              //it.print(room1_data_x, room2_icon_y+icon_gap_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"%");
+              //it.print(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"m3");
+              //it.print(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"ppm");
+              //it.print(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y+icon_gap_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"ppb");
 
           } else {
 
               //it.print(150, room2_name_y-3, id(font_rooms_name),id(color_black), TextAlign::BOTTOM_RIGHT,"Condition :");
-              it.print(10, room2_name_y - 3, id(font_rooms_name), id(color_red), TextAlign::BOTTOM_LEFT, id(today_weather).state.c_str());
-
+               if (id(today_weather).has_state()) {
+                it.print(19, room2_name_y - 3, id(font_small), id(color_red), TextAlign::BOTTOM_LEFT, id(today_weather).state.c_str());
+                  }
               //sensor icon
               int room2_icon_y=300;
-              it.print(room1_icon_x, room2_icon_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F058E"); //umidity
-              it.print(room1_icon_x, room2_icon_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F17FF"); //uv_index
-              it.print(room1_icon_x, room2_icon_y+icon_gap_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F054B"); //ain_precipitation
-              it.print(room1_icon_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F0690"); //forecast_rain_probability
-              it.print(room1_icon_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT,"\U000F15FA"); //wind_speed
+                it.print(room1_icon_x, room2_icon_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F058E"); //umidity
+                it.print(room1_icon_x, room2_icon_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F17FF"); //uv_index
+                it.print(room1_icon_x, room2_icon_y+icon_gap_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F054B"); //ain_precipitation
+                it.print(room1_icon_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT, "\U000F0690"); //forecast_rain_probability
+                it.print(room1_icon_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y+icon_gap_y, id(icon_room),id(color_black), TextAlign::BOTTOM_LEFT,"\U000F15FA"); //wind_speed
 
               //sensor data
               int room2_data_y=room2_icon_y+2;
-              it.printf(room1_data_x, room2_icon_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%s",id(today_humidity).state.c_str()); //umidity
-              it.printf(room1_data_x, room2_icon_y+icon_gap_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT,"%s",id(today_uv_index).state.c_str()); //uv_index
-              it.printf(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%s",id(forecast_rain_precipitation).state.c_str()); //ain_precipitation
-              it.printf(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y, id(font_small),id(color_red),TextAlign::BOTTOM_RIGHT, "%s",id(forecast_rain_probability).state.c_str()); //forecast_rain_probability
-              it.printf(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y+icon_gap_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%s",id(today_wind_speed).state.c_str()); //wind_speed
-
+              if (id(today_humidity).has_state()) {
+                it.printf(room1_data_x, room2_icon_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%s",id(today_humidity).state.c_str()); //umidity
+                }
+              if (id(today_uv_index).has_state()) {
+                it.printf(room1_data_x, room2_icon_y+icon_gap_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT,"%s",id(today_uv_index).state.c_str()); //uv_index
+                }
+              if (id(forecast_rain_precipitation).has_state()) {                
+                it.printf(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%s",id(forecast_rain_precipitation).state.c_str()); //ain_precipitation
+                }
+              if (id(forecast_rain_probability).has_state()){                      
+                it.printf(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y, id(font_small),id(color_red),TextAlign::BOTTOM_RIGHT, "%s",id(forecast_rain_probability).state.c_str()); //forecast_rain_probability
+                }
+              if (id(today_wind_speed).has_state()){                      
+                it.printf(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y+icon_gap_y, id(font_small),id(color_red), TextAlign::BOTTOM_RIGHT, "%s",id(today_wind_speed).state.c_str()); //wind_speed
+                }
               it.print(room1_data_x, room2_icon_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"%");
               it.print(room1_data_x, room2_icon_y+icon_gap_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"Uv");
               it.print(room1_data_x, room2_icon_y+icon_gap_y+icon_gap_y, id(font_small),id(color_black), TextAlign::BOTTOM_LEFT,"%");
@@ -734,15 +713,19 @@ display:
           //************************ TODAY weather ************************
 
           //today weather big icon
-          it.printf(400, 5, id(icon_today),id(color_black), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(today_weather).state.c_str()].c_str());
+          if (id(today_weather).has_state()) {              
+            it.printf(400, 5, id(icon_today),id(color_black), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(today_weather).state.c_str()].c_str());
+            }
 
           //today weather temperature  
-          it.printf(780, 50, id(font_today_temp),id(color_black), TextAlign::TOP_RIGHT, "%s", id(today_temperature).state.c_str());
-
+          if (id(today_temperature).has_state()) {             
+            it.printf(780, 50, id(font_today_temp),id(color_black), TextAlign::TOP_RIGHT, "%s", id(today_temperature).state.c_str());
+            }
           it.filled_rectangle(540, 150, 235, 1,id(color_black));
-          it.print(540, 180, id(font_rooms_name),id(color_black), TextAlign::BOTTOM_LEFT,"feels like");      
-          it.printf(780, 220, id(font_feel_like),id(color_red), TextAlign::BOTTOM_RIGHT, "%s", id(today_feel_like).state.c_str());
-
+          it.print(540, 180, id(font_rooms_name),id(color_black), TextAlign::BOTTOM_LEFT,"feels like");  
+          if (id(today_feel_like).has_state()) {                  
+            it.printf(780, 220, id(font_feel_like),id(color_red), TextAlign::BOTTOM_RIGHT, "%s", id(today_feel_like).state.c_str());
+            }
           //************************ options_windows  ************************
           // Print sunrise and sun setting dates
 
@@ -763,8 +746,10 @@ display:
                   {"last_quarter", "\U000F0F63"},
                   {"waning_crescent", "\U000F0F65"},
                 };   
-              it.printf(780, 250, id(icon_sun_and_moon), id(color_black),TextAlign::CENTER_RIGHT,  moon_icon_map[id(today_moon).state.c_str()].c_str());
-          } else if (id(options_windows).state.c_str() == std::string("time"))  {
+            if (id(today_moon).has_state()) {                   
+              it.printf(780, 252, id(icon_sun_and_moon), id(color_black),TextAlign::CENTER_RIGHT,  moon_icon_map[id(today_moon).state.c_str()].c_str());
+              }
+          } else if (id(options_windows).state.c_str() == std::string("half_hour"))  {
               it.strftime(780, 250, id(font_month),id(color_black), TextAlign::CENTER_RIGHT, "%H:%M", id(ha_time).now());      
           } else {
            // it.strftime(780, 250, id(font_month),id(color_black), TextAlign::CENTER_RIGHT, "%H:%M", id(ha_time).now());  
@@ -772,7 +757,7 @@ display:
 
           if ((std::stoi(id(forecast_rain_probability).state.c_str()) > 0) && 
               (id(sidebar_mode).state.c_str() == std::string("from_aircube")) &&
-              (id(options_windows).state.c_str() == std::string("time"))) {
+              (id(options_windows).state.c_str() == std::string("half_hour"))) {
               it.printf(485, 242, id(icon_sun_and_moon), id(color_black), TextAlign::CENTER_LEFT, "\U000F054B");
               it.printf(550, 271, id(font_rooms_name), id(color_red), TextAlign::BOTTOM_RIGHT, "%s", id(forecast_rain_probability).state.c_str());
               it.print(550, 271, id(font_rooms_name), id(color_black), TextAlign::BOTTOM_LEFT, "%");
@@ -808,87 +793,101 @@ display:
 
           //temperature
           if (id(forcast_mode).state.c_str() == std::string("high_low")){
-            it.printf(forecast_x, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_1).state.c_str()); 
-            it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_2).state.c_str());  
-            it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_3).state.c_str());      
-            it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_4).state.c_str());       
-            it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_5).state.c_str());       
-            it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_6).state.c_str());  
-            it.printf(forecast_x, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_1).state.c_str());
-            it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_2).state.c_str());       
-            it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_3).state.c_str());          
-            it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_4).state.c_str());   
-            it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_5).state.c_str());      
-            it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_6).state.c_str());                       
-
+            if (id(forecast_temperature_1).has_state()) { 
+              it.printf(forecast_x, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_1).state.c_str()); 
+              it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_2).state.c_str());  
+              it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_3).state.c_str());      
+              it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_4).state.c_str());       
+              it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_5).state.c_str());       
+              it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_6).state.c_str());  
+              it.printf(forecast_x, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_1).state.c_str());
+              it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_2).state.c_str());       
+              it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_3).state.c_str());          
+              it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_4).state.c_str());   
+              it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_5).state.c_str());      
+              it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_6).state.c_str());                       
+              }
           } else if (id(forcast_mode).state.c_str() == std::string("high_rain")){
-            it.printf(forecast_x, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_1).state.c_str()); 
-            it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_2).state.c_str());  
-            it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_3).state.c_str());      
-            it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_4).state.c_str());       
-            it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_5).state.c_str());       
-            it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_6).state.c_str());  
-            it.printf(forecast_x, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_1).state.c_str()); 
-            it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_2).state.c_str());       
-            it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_3).state.c_str());          
-            it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_4).state.c_str());   
-            it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_5).state.c_str());      
-            it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_6).state.c_str());      
-
+            if (id(forecast_temperature_1).has_state()) {             
+              it.printf(forecast_x, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_1).state.c_str()); 
+              it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_2).state.c_str());  
+              it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_3).state.c_str());      
+              it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_4).state.c_str());       
+              it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_5).state.c_str());       
+              it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_temperature_6).state.c_str());  
+              it.printf(forecast_x, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_1).state.c_str()); 
+              it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_2).state.c_str());       
+              it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_3).state.c_str());          
+              it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_4).state.c_str());   
+              it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_5).state.c_str());      
+              it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_6).state.c_str());      
+              }
           } else {
-            it.printf(forecast_x, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_1).state.c_str()); 
-            it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_2).state.c_str());  
-            it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_3).state.c_str());      
-            it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_4).state.c_str());       
-            it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_5).state.c_str());       
-            it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_6).state.c_str());  
-            it.printf(forecast_x, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_1).state.c_str()); 
-            it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_2).state.c_str());       
-            it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_3).state.c_str());          
-            it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_4).state.c_str());   
-            it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_5).state.c_str());      
-            it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_6).state.c_str());   
+            if (id(forecast_templow_1).has_state())  {              
+              it.printf(forecast_x, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_1).state.c_str()); 
+              it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_2).state.c_str());  
+              it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_3).state.c_str());      
+              it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_4).state.c_str());       
+              it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_5).state.c_str());       
+              it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_data_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_templow_6).state.c_str());  
+              it.printf(forecast_x, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_1).state.c_str()); 
+              it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_2).state.c_str());       
+              it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_3).state.c_str());          
+              it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_4).state.c_str());   
+              it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_5).state.c_str());      
+              it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_data_gap+forecast_icon_gap, id(font_medium),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_precipitation_probability_6).state.c_str());   
+              }
           } 
           
           it.line(forecast_x+45, 345, forecast_x+45, 465);
           
           //DAY2
           //weekday
-          it.printf(forecast_x+forecast_x_gap, forecast_y, id(font_medium_bold),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_weekday_2).state.c_str());  
+          if (id(forecast_weekday_2).has_state())  {     
+            it.printf(forecast_x+forecast_x_gap, forecast_y, id(font_medium_bold),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_weekday_2).state.c_str());  
           //icon
-          it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_icon_gap, id(icon_forecast),id(color_red), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(forecast_weather_2).state.c_str()].c_str()); 
-
+            it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_icon_gap, id(icon_forecast),id(color_red), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(forecast_weather_2).state.c_str()].c_str()); 
+            }
           it.line(forecast_x+forecast_x_gap+45, 345, forecast_x+forecast_x_gap+45, 465);
           
           //DAY3
           //weekday
-          it.printf(forecast_x+forecast_x_gap*2, forecast_y, id(font_medium_bold),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_weekday_3).state.c_str());  
+          if (id(forecast_weekday_3).has_state()) {            
+            it.printf(forecast_x+forecast_x_gap*2, forecast_y, id(font_medium_bold),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_weekday_3).state.c_str());  
           //icon
-          it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_icon_gap, id(icon_forecast),id(color_red), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(forecast_weather_3).state.c_str()].c_str()); 
-          
+            it.printf(forecast_x+forecast_x_gap*2, forecast_y+forecast_icon_gap, id(icon_forecast),id(color_red), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(forecast_weather_3).state.c_str()].c_str()); 
+          }
           it.line(forecast_x+forecast_x_gap*2+45, 345, forecast_x+forecast_x_gap*2+45, 465);
           
           //DAY4
           //weekday
-          it.printf(forecast_x+forecast_x_gap*3, forecast_y, id(font_medium_bold),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_weekday_4).state.c_str());
+          if (id(forecast_weekday_4).has_state()) {              
+            it.printf(forecast_x+forecast_x_gap*3, forecast_y, id(font_medium_bold),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_weekday_4).state.c_str());
           //icon
-          it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_icon_gap, id(icon_forecast),id(color_red), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(forecast_weather_4).state.c_str()].c_str());
-
+            it.printf(forecast_x+forecast_x_gap*3, forecast_y+forecast_icon_gap, id(icon_forecast),id(color_red), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(forecast_weather_4).state.c_str()].c_str());
+          }
           it.line(forecast_x+forecast_x_gap*3+45, 345, forecast_x+forecast_x_gap*3+45, 465);
 
           //DAY5
           //weekday
-          it.printf(forecast_x+forecast_x_gap*4, forecast_y, id(font_medium_bold),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_weekday_5).state.c_str());
+          if (id(forecast_weekday_5).has_state()) {               
+            it.printf(forecast_x+forecast_x_gap*4, forecast_y, id(font_medium_bold),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_weekday_5).state.c_str());
           //icon
-          it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_icon_gap, id(icon_forecast),id(color_red), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(forecast_weather_5).state.c_str()].c_str());
-
+            it.printf(forecast_x+forecast_x_gap*4, forecast_y+forecast_icon_gap, id(icon_forecast),id(color_red), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(forecast_weather_5).state.c_str()].c_str());
+            }
           it.line(forecast_x+forecast_x_gap*4+45, 345, forecast_x+forecast_x_gap*4+45, 465);
 
           //DAY6
           //weekday
-          it.printf(forecast_x+forecast_x_gap*5, forecast_y, id(font_medium_bold),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_weekday_6).state.c_str());
+          if (id(forecast_weekday_6).has_state()){            
+            it.printf(forecast_x+forecast_x_gap*5, forecast_y, id(font_medium_bold),id(color_black), TextAlign::TOP_CENTER, "%s", id(forecast_weekday_6).state.c_str());
           //icon
-          it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_icon_gap, id(icon_forecast),id(color_red), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(forecast_weather_6).state.c_str()].c_str());
-
+            it.printf(forecast_x+forecast_x_gap*5, forecast_y+forecast_icon_gap, id(icon_forecast),id(color_red), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(forecast_weather_6).state.c_str()].c_str());
+            }
           //last update time
-          //it.strftime(800, 12, id(font_smallest),id(color_black), TextAlign::BOTT
+          //it.strftime(800, 12, id(font_smallest),id(color_black), TextAlign::BOTT,id(ha_time));
+
+          if (id(show_last_updated).state) {
+            it.strftime(762, 3, id(font_smallest), id(color_black), TextAlign::TOP_LEFT, "%H:%M", id(ha_time).now());
+            it.print(760, 3, id(font_smallest), id(color_black), TextAlign::TOP_RIGHT, "Last updated:");
+          }
