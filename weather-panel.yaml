@@ -1,9 +1,9 @@
 substitutions:
-  name: weather-panel-e3fcf8
-  friendly_name: weather-panel-e3fcf8
-  upper_devicename: "ESP32 7.5in RED BLACK WHITE"
+  name: weatherpanel
+  friendly_name: WeatherPanel
+  upper_devicename: "ESP32 7.5in RED BLACK AND　WHITE"
   project_name: "Taiwan Smart Home Technology.E-Paper Weather Panel"
-  project_version: "1.0"   
+  project_version: "1.１"   
   
 esphome:
   name: ${name}
@@ -24,7 +24,8 @@ logger:
 
 # Enable Home Assistant API
 api:
-
+  reboot_timeout: 0s
+  
 ota:
   platform: esphome
 
