@@ -1,3 +1,2 @@
 # e_ink_display
-weather-panel.factory_web.bin　ＯＴＡ檔案
-weather-panel.yaml
+![Mosquitto_broker](/E_ink_display/image/S__36552714_0.jpg)
