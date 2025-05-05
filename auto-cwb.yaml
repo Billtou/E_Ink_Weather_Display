@@ -2,30 +2,28 @@ substitutions:
   timezone: Asia/Taipei
   default_city_name: 臺中市
   default_town_name: 南屯區
-
+  default_cwa_api: CWA-E02B6C42-9A1B-4FD7-B5A6-BA605006274E
 
 esphome:
-  name: auto-cwb
-  friendly_name: auto_cwb
+  name: "auto-cwa"
+  friendly_name: auto_cwa
 
 esp32:
   board: esp32-s3-devkitc-1
   framework:
     type: arduino
-  
+
 external_components:
   - source: components
 
 logger:
   level: DEBUG
 
-# Enable Home Assistant API
-api: 
-
+api:
+  reboot_timeout: 0s
 
 ota:
   - platform: esphome
-
 
 wifi:
   ssid: !secret wifi_ssid
@@ -33,7 +31,6 @@ wifi:
   on_connect:
     - delay: 2s
     - script.execute: update_forecast
-  # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap: {}
 
 captive_portal:
@@ -41,7 +38,7 @@ captive_portal:
 web_server:
   version: 3
   port: 80  
-    
+
 time:
   - platform: sntp
     id: esp_time
@@ -51,7 +48,7 @@ time:
       - time2.google.com
       - time3.google.com
     on_time:
-      - cron: "00 /30 * * * *"
+      - cron: "00 /30 * * * *"   # 30分鐘更新一次
         then:
           if:
             condition:
@@ -59,8 +56,9 @@ time:
             then:
               - script.execute: update_forecast
 
-cwa_town_forecast:
-  - api_key: !secret cwa_api_key
+cwa_town_forecast:  
+  # 3D預報當日基本數據資料
+  - api_key: !lambda return id(cwa_api).state;
     id: town_forecast_3d
     city_name: !lambda return id(city_name).state;
     town_name: !lambda return id(town_name).state;
@@ -92,9 +90,9 @@ cwa_town_forecast:
               ESP_LOGI("town_forecast", "  %s Temperature: %s °C", ts.to_esptime().strftime("%H:%M").c_str(), ts.find_element_value(ElementValueKey::TEMPERATURE).c_str());
             }
           }
-
-  - api_key: !secret cwa_api_key
-    id: town_forecast_7d
+  # 7D預報當日基本數據資料
+  - api_key: !lambda return id(cwa_api).state;
+    id: town_forecast_7d  
     city_name: !lambda return id(city_name).state;
     town_name: !lambda return id(town_name).state;
     mode: 7-DAYS
@@ -126,13 +124,8 @@ cwa_town_forecast:
             }
           }
 
-
-
-
-
-
-
 select:
+  # 縣市別選單 默認臺中市
   - platform: template
     id: city_name
     name: City Name
@@ -164,6 +157,7 @@ select:
     optimistic: true
 
 text:
+  # 輸入鄉帳區別 默認南屯區
   - platform: template
     id: town_name
     name: "Town Name"
@@ -174,26 +168,99 @@ text:
     restore_value: true
     initial_value: $default_town_name
 
+ # 輸入CWA授權碼 默認我的
+  - platform: template
+    id: cwa_api
+    name: "CWA API"
+    optimistic: true
+    min_length: 0
+    max_length: 42
+    mode: text
+    restore_value: true
+    initial_value: $default_cwa_api   
+
 script:
   - id: update_forecast
     then:
       - component.update: town_forecast_3d
-      - component.update: town_forecast_7d
       - lambda: |-
           using namespace cwa_town_forecast;
-          auto forecast = id(town_forecast_id);
+          auto forecast = id(town_forecast_3d);
           forecast->update();
           auto data = forecast->get_data();
 
-          ESP_LOGI("town_forecast", "ForecastData:");
-          ESP_LOGI("town_forecast", "LocationsName: %s", data.locations_name.c_str());
-          ESP_LOGI("town_forecast", "LocationName: %s", data.location_name.c_str());
+          ESP_LOGI("town_forecast_3d", "ForecastData:");
+          ESP_LOGI("town_forecast_3d", "LocationsName: %s", data.locations_name.c_str());
+          ESP_LOGI("town_forecast_3d", "LocationName: %s", data.location_name.c_str());
+
+
+          // --- 額外新增：每天溫度區間輸出與發佈 ---
+          auto now = id(esp_time).now();
+          
+          // 體感溫度 Sensors
+          std::array<esphome::sensor::Sensor*, 7> app_temp_sensors = {
+            id(hour_app_temp_1), id(hour_app_temp_2), id(hour_app_temp_3),
+            id(hour_app_temp_4), id(hour_app_temp_5), id(hour_app_temp_6), id(hour_app_temp_7)
+          };
+
+          // 降雨機率 Sensors
+          std::array<esphome::sensor::Sensor*, 7> hour_pop_sensors = {
+            id(hour_pop_1), id(hour_pop_2), id(hour_pop_3),
+            id(hour_pop_4), id(hour_pop_5), id(hour_pop_6), id(hour_pop_7)
+          };
+
+          // 相對濕度 Sensors
+          std::array<esphome::sensor::Sensor*, 7> hour_humidity_sensors = {
+            id(hour_humidity_1), id(hour_humidity_2), id(hour_humidity_3),
+            id(hour_humidity_4), id(hour_humidity_5), id(hour_humidity_6), id(hour_humidity_7)
+          };
+
+          // 天氣圖示 Sensors（TextSensor）
+          std::array<esphome::text_sensor::TextSensor*, 7> hour_weather_icon_sensors = {
+            id(hour_weather_icon_1), id(hour_weather_icon_2), id(hour_weather_icon_3),
+            id(hour_weather_icon_4), id(hour_weather_icon_5), id(hour_weather_icon_6), id(hour_weather_icon_7)
+          };
+
+          for (int i = 0; i < 7; ++i) {
+            std::tm start = mktm(now.year, now.month, now.day_of_month + i, 0, 0, 0);
+            std::tm end   = mktm(now.year, now.month, now.day_of_month + i, 23, 59, 59);
+
+            // 體感溫度
+            auto hour_app = data.find_value(ElementValueKey::APPARENT_TEMPERATURE, true, start);
+            if (!hour_app.empty()) {
+              float hour_app_value = parse_number<float>(hour_app).value_or(0.0f);
+              app_temp_sensors[i]->publish_state(hour_app_value);
+            }
+
+            // 降雨機率
+            auto hour_pop_str = data.find_value(ElementValueKey::PROBABILITY_OF_PRECIPITATION, true, start);
+            if (!hour_pop_str.empty()) {
+              float hour_pop_value = parse_number<float>(hour_pop_str).value_or(0.0f);
+              hour_pop_sensors[i]->publish_state(hour_pop_value);
+            }
+
+            // 相對濕度
+            auto hour_humidity_str = data.find_value(ElementValueKey::RELATIVE_HUMIDITY, true, start);
+            if (!hour_humidity_str.empty()) {
+              float humidity_value = parse_number<float>(hour_humidity_str).value_or(0.0f);
+              hour_humidity_sensors[i]->publish_state(humidity_value);
+            }
+
+            // 天氣圖示
+            auto hour_icon_str = data.find_value(ElementValueKey::WEATHER_ICON, true, start);
+            if (!hour_icon_str.empty()) {
+              hour_weather_icon_sensors[i]->publish_state(hour_icon_str);
+            }
+
+          }
+
+          // --- 原本的 weather_elements 輸出 ---
           for (const auto &we : data.weather_elements) {
             delay(1);
-            ESP_LOGI("town_forecast", "Element: %s", we.element_name.c_str());
+            ESP_LOGI("town_forecast_3d", "Element: %s", we.element_name.c_str());
             int count = 0;
             for (const auto &ts : we.times) {
-              if (count++ >= 3) break; // Limit to 3 entries for logging
+              if (count++ >= 3) break;
               std::string joined_values;
               for (const auto &kv : ts.element_values) {
                 if (!joined_values.empty()) {
@@ -201,12 +268,139 @@ script:
                 }
                 joined_values += element_value_key_to_string(kv.first) + "=" + kv.second;
               }
-
-              ESP_LOGI("town_forecast", "  %s  %s", ts.to_esptime().strftime("%Y-%m-%d %H:%M").c_str(), joined_values.c_str());
+              ESP_LOGI("town_forecast_3d", "  %s  %s", ts.to_esptime().strftime("%Y-%m-%d %H:%M").c_str(), joined_values.c_str());
               delay(1);
+            }
+          }            
+
+      - component.update: town_forecast_7d
+      - lambda: |-
+          using namespace cwa_town_forecast;
+          auto forecast = id(town_forecast_7d);
+          forecast->update();
+          auto data = forecast->get_data();
+
+          ESP_LOGI("town_forecast_7d", "ForecastData:");
+          ESP_LOGI("town_forecast_7d", "LocationsName: %s", data.locations_name.c_str());
+          ESP_LOGI("town_forecast_7d", "LocationName: %s", data.location_name.c_str());
+
+          // --- 額外新增：每天溫度區間輸出與發佈 ---
+          auto now = id(esp_time).now();
+
+          // --- 當天最高溫sensor id
+          std::array<esphome::sensor::Sensor*, 7> min_sensors = {
+            id(day_temp_min_1), id(day_temp_min_2), id(day_temp_min_3),
+            id(day_temp_min_4), id(day_temp_min_5), id(day_temp_min_6), id(day_temp_min_7)
+          };
+
+          // --- 當天最低溫sensor id
+          std::array<esphome::sensor::Sensor*, 7> max_sensors = {
+            id(day_temp_max_1), id(day_temp_max_2), id(day_temp_max_3),
+            id(day_temp_max_4), id(day_temp_max_5), id(day_temp_max_6), id(day_temp_max_7)
+          };
+
+          // --- 當天體感最高溫sensor id
+          std::array<esphome::sensor::Sensor*, 7> app_temp_min_sensors = {
+            id(day_app_temp_min_1), id(day_app_temp_min_2), id(day_app_temp_min_3),
+            id(day_app_temp_min_4), id(day_app_temp_min_5), id(day_app_temp_min_6), id(day_app_temp_min_7)
+          };
+
+          // --- 當天體感最低溫sensor id
+          std::array<esphome::sensor::Sensor*, 7> app_temp_max_sensors = {
+            id(day_app_temp_max_1), id(day_app_temp_max_2), id(day_app_temp_max_3),
+            id(day_app_temp_max_4), id(day_app_temp_max_5), id(day_app_temp_max_6), id(day_app_temp_max_7)
+          };
+
+          // --- 當天天氣預報圖標sensor id
+          std::array<esphome::text_sensor::TextSensor*, 7> icon_sensors = {
+            id(day_icon_1), id(day_icon_2), id(day_icon_3),
+            id(day_icon_4), id(day_icon_5), id(day_icon_6), id(day_icon_7)
+          };
+
+          // --- 當天預報下雨機率sensor id
+          std::array<esphome::sensor::Sensor*, 7> pop_sensors = {
+            id(day_pop_1), id(day_pop_2), id(day_pop_3),
+            id(day_pop_4), id(day_pop_5), id(day_pop_6), id(day_pop_7)
+          };
+
+          // --- 當天預報濕度sensor id
+          std::array<esphome::sensor::Sensor*, 7> humidity_sensors = {
+            id(day_humidity_1), id(day_humidity_2), id(day_humidity_3),
+            id(day_humidity_4), id(day_humidity_5), id(day_humidity_6), id(day_humidity_7)
+          };
+
+          for (int i = 0; i < 7; ++i) {
+            std::tm start = mktm(now.year, now.month, now.day_of_month + i, 0, 0, 0);
+            std::tm end   = mktm(now.year, now.month, now.day_of_month + i, 23, 59, 59);
+
+            // 最高溫度Max
+            auto temp_max = data.find_min_max_values(ElementValueKey::MAX_TEMPERATURE, start, end);
+            ESP_LOGI("town_forecast", "Day %d (%04d-%02d-%02d): Temp %.0f - %.0f °C",
+              i + 1, start.tm_year + 1900, start.tm_mon + 1, start.tm_mday,
+              temp_max.first, temp_max.second);
+            max_sensors[i]->publish_state(temp_max.second);
+
+            // 最低溫度Min
+            auto temp_min = data.find_min_max_values(ElementValueKey::MIN_TEMPERATURE, start, end);
+            ESP_LOGI("town_forecast", "Day %d (%04d-%02d-%02d): Temp %.0f - %.0f °C",
+              i + 1, start.tm_year + 1900, start.tm_mon + 1, start.tm_mday,
+              temp_min.first, temp_min.second);
+            min_sensors[i]->publish_state(temp_min.first);
+
+            // 最高體感溫度min
+            auto app_min = data.find_min_max_values(ElementValueKey::MIN_APPARENT_TEMPERATURE, start, end);
+            ESP_LOGI("town_forecast", "Day %d (%04d-%02d-%02d): Apparent Temp %.0f - %.0f °C",
+              i + 1, start.tm_year + 1900, start.tm_mon + 1, start.tm_mday,
+              app_min.first, app_min.second);
+            app_temp_min_sensors[i]->publish_state(app_min.second);
+
+            // 最高體感溫度max
+            auto app_max = data.find_min_max_values(ElementValueKey::MAX_APPARENT_TEMPERATURE, start, end);
+            ESP_LOGI("town_forecast", "Day %d (%04d-%02d-%02d): Apparent Temp %.0f - %.0f °C",
+              i + 1, start.tm_year + 1900, start.tm_mon + 1, start.tm_mday,
+              app_max.first, app_max.second);
+            app_temp_max_sensors[i]->publish_state(app_max.first);
+
+            // 天氣預報圖標
+            auto icon = data.find_value(ElementValueKey::WEATHER_ICON, true, start);
+            ESP_LOGI("town_forecast", "Day %d (%04d-%02d-%02d): Weather Icon = %s",
+              i + 1, start.tm_year + 1900, start.tm_mon + 1, start.tm_mday,
+              icon.c_str());
+            icon_sensors[i]->publish_state(icon);          
+
+            // 降水機率
+            auto pop_str = data.find_value(ElementValueKey::PROBABILITY_OF_PRECIPITATION, true, start);
+            if (!pop_str.empty()) {
+              float pop_value = parse_number<float>(pop_str).value_or(0.0f);
+              pop_sensors[i]->publish_state(pop_value);
+            }
+
+            // 相對濕度
+            auto humidity_str = data.find_value(ElementValueKey::RELATIVE_HUMIDITY, true, start);
+            if (!humidity_str.empty()) {
+              float humidity_value = parse_number<float>(humidity_str).value_or(0.0f);
+              humidity_sensors[i]->publish_state(humidity_value);
             }
           }
 
+          // --- 原本的 weather_elements 輸出 ---
+          for (const auto &we : data.weather_elements) {
+            delay(1);
+            ESP_LOGI("town_forecast_7d", "Element: %s", we.element_name.c_str());
+            int count = 0;
+            for (const auto &ts : we.times) {
+              if (count++ >= 3) break;
+              std::string joined_values;
+              for (const auto &kv : ts.element_values) {
+                if (!joined_values.empty()) {
+                  joined_values += ", ";
+                }
+                joined_values += element_value_key_to_string(kv.first) + "=" + kv.second;
+              }
+              ESP_LOGI("town_forecast_7d", "  %s  %s", ts.to_esptime().strftime("%Y-%m-%d %H:%M").c_str(), joined_values.c_str());
+              delay(1);
+            }
+          }
 
 
 button:
@@ -214,98 +408,560 @@ button:
     name: "Forecast Update"
     on_press:
       - script.execute: update_forecast
+
 sensor:
   - platform: cwa_town_forecast
     cwa_town_forecast_id: town_forecast_3d
     temperature:
-      name: "Temperature"
+      name: "3H Temperature"
+      id: temperature_3H
+      accuracy_decimals: 0
     dew_point:
-      name: "Dew Point"
+      name: "3H Dew Point"
+      id: dew_point_3H
     apparent_temperature:
-      name: "Apparent Temperature"
+      name: "3H Apparent Temperature"
+      id: apparent_temperature_3H
+      accuracy_decimals: 0
     relative_humidity:
-      name: "Relative Humidity"
+      name: "3H Relative Humidity"
+      id: relative_humidity_3H
+      accuracy_decimals: 0
     wind_speed:
-      name: "Wind Speed"
+      name: "3H Wind Speed"
+      id: wind_speed_3H
+      accuracy_decimals: 0
     probability_of_precipitation:
-      name: "Probability Of Precipitation(3H)"
+      name: "3H Probability Of Precipitation"
+      id: probability_of_precipitation_3H
 
   - platform: cwa_town_forecast
     cwa_town_forecast_id: town_forecast_7d
     temperature:
-      name: "Temperature"
+      name: "7D Temperature"
+      id: temperature_7D
+      accuracy_decimals: 0
     max_temperature:
-      name: "Max Temperature"
+      name: "7D Max Temperature"
+      id: max_temperature_7D
+      accuracy_decimals: 0
     min_temperature:
-      name: "Min Temperature"
+      name: "7D Min Temperature"
+      id: min_temperature_7D
+      accuracy_decimals: 0
     dew_point:
-      name: "Dew Point"
+      name: "7D Dew Point"
+      id: dew_point_7D
+      accuracy_decimals: 0
     relative_humidity:
-      name: "Relative Humidity"
+      name: "7D Relative Humidity"
+      id: relative_humidity_7D
+      accuracy_decimals: 0
     max_apparent_temperature:
-      name: "Max Apparent Temperature"
+      name: "7D Max Apparent Temperature"
+      id: max_apparent_temperature_7D
+      accuracy_decimals: 0
     min_apparent_temperature:
-      name: "Min Apparent Temperature"
+      name: "7D Min Apparent Temperature"
+      id: min_apparent_temperature_7D
+      accuracy_decimals: 0
     wind_speed:
-      name: "Wind Speed"
+      name: "7D Wind Speed"
+      id: wind_speed_7D
+      accuracy_decimals: 0
     probability_of_precipitation:
-      name: "Probability Of Precipitation(12H)"
+      name: "7D Probability Of Precipitation(12H)"
+      id: probability_of_precipitation_7D_12H
     uv_index:
-      name: "UV Index"
+      name: "7D UV Index"
+      id: uv_index_7D
+#-----------------------------------7D -預測最高與最低溫
+  - platform: template
+    name: "Day 1 Forecast Temp Min(7D)"
+    id: day_temp_min_1
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 1 Forecast Temp Max(7D)"
+    id: day_temp_max_1
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Day 2 Forecast Temp Min(7D)"
+    id: day_temp_min_2
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 2 Forecast Temp Max(7D)"
+    id: day_temp_max_2
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Day 3 Forecast Temp Min(7D)"
+    id: day_temp_min_3
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 3 Forecast Temp Max(7D)"
+    id: day_temp_max_3
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Day 4 Forecast Temp Min(7D)"
+    id: day_temp_min_4
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 4 Forecast Temp Max(7D)"
+    id: day_temp_max_4
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Day 5 Forecast Temp Min(7D)"
+    id: day_temp_min_5
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 5 Forecast Temp Max(7D)"
+    id: day_temp_max_5
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Day 6 Forecast Temp Min(7D)"
+    id: day_temp_min_6
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 6 Forecast Temp Max(7D)"
+    id: day_temp_max_6
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Day 7 Forecast Temp Min(7D)"
+    id: day_temp_min_7
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 7 Forecast Temp Max(7D)"
+    id: day_temp_max_7
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+  #-----------------------------------7D -預測# 體感溫度最大值
+
+  - platform: template
+    name: "Day 1 Apparent Temp Max(7D)"
+    id: day_app_temp_max_1
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 2 Apparent Temp Max(7D)"
+    id: day_app_temp_max_2
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 3 Apparent Temp Max(7D)"
+    id: day_app_temp_max_3
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 4 Apparent Temp Max(7D)"
+    id: day_app_temp_max_4
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 5 Apparent Temp Max(7D)"
+    id: day_app_temp_max_5
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 6 Apparent Temp Max(7D)"
+    id: day_app_temp_max_6
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 7 Apparent Temp Max(7D)"
+    id: day_app_temp_max_7
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+  #-----------------------------------7D -預測# 體感溫度最小值
+  - platform: template
+    name: "Day 1 Apparent Temp Min(7D)"
+    id: day_app_temp_min_1
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0  
+  
+  - platform: template
+    name: "Day 2 Apparent Temp Min(7D)"
+    id: day_app_temp_min_2
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 3 Apparent Temp Min(7D)"
+    id: day_app_temp_min_3
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 4 Apparent Temp Min(7D)"
+    id: day_app_temp_min_4
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 5 Apparent Temp Min(7D)"
+    id: day_app_temp_min_5
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 6 Apparent Temp Min(7D)"
+    id: day_app_temp_min_6
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 7 Apparent Temp Min(7D)"
+    id: day_app_temp_min_7
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+
+
+
+  #-----------------------------------3H -預測# 體感溫度最小值
+  - platform: template
+    name: "Hour 1 Apparent Temp(3H)"
+    id: hour_app_temp_1
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Hour 2 Apparent Temp(3H)"
+    id: hour_app_temp_2
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Hour 3 Apparent Temp(3H)"
+    id: hour_app_temp_3
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Hour 4 Apparent Temp(3H)"
+    id: hour_app_temp_4
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Hour 5 Apparent Temp(3H)"
+    id: hour_app_temp_5
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Hour 6 Apparent Temp(3H)"
+    id: hour_app_temp_6
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Hour 7 Apparent Temp(3H)"
+    id: hour_app_temp_7
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+#-----------------------------------7D -預測降雨機率
+  - platform: template
+    name: "Day 1 Rain POP(7D)"
+    id: day_pop_1
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Day 2 Rain POP(7D)"
+    id: day_pop_2
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Day 3 Rain POP(7D)"
+    id: day_pop_3
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Day 4 Rain POP(7D)"
+    id: day_pop_4
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Day 5 Rain POP(7D)"
+    id: day_pop_5
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Day 6 Rain POP(7D)"
+    id: day_pop_6
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Day 7 Rain POP(7D)"
+    id: day_pop_7
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+#-----------------------------------3H -預測降雨機率
+  - platform: template
+    name: "Hour 1 Rain POP(3H)"
+    id: hour_pop_1
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Hour 2 Rain POP(3H)"
+    id: hour_pop_2
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Hour 3 Rain POP(3H)"
+    id: hour_pop_3
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Hour 4 Rain POP(3H)"
+    id: hour_pop_4
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Hour 5 Rain POP(3H)"
+    id: hour_pop_5
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Hour 6 Rain POP(3H)"
+    id: hour_pop_6
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Hour 7 Rain POP(3H)"
+    id: hour_pop_7
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+#-----------------------------------7D -預測相對溼度
+  - platform: template
+    name: "Day 1 Humidity(7D)"
+    id: day_humidity_1
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 2 Humidity(7D)"
+    id: day_humidity_2
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 3 Humidity(7D)"
+    id: day_humidity_3
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 4 Humidity(7D)"
+    id: day_humidity_4
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 5 Humidity(7D)"
+    id: day_humidity_5
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 6 Humidity(7D)"
+    id: day_humidity_6
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+  - platform: template
+    name: "Day 7 Humidity(7D)"
+    id: day_humidity_7
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+
+#-----------------------------------7D -預測相對溼度
+
+  - platform: template
+    name: "Hour 1 Humidity(3H)"
+    id: hour_humidity_1
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Hour 2 Humidity(3H)"
+    id: hour_humidity_2
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Hour 3 Humidity(3H)"
+    id: hour_humidity_3
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Hour 4 Humidity(3H)"
+    id: hour_humidity_4
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Hour 5 Humidity(3H)"
+    id: hour_humidity_5
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Hour 6 Humidity(3H)"
+    id: hour_humidity_6
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Hour 7 Humidity(3H)"
+    id: hour_humidity_7
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+
 
 text_sensor:
   - platform: cwa_town_forecast
     cwa_town_forecast_id: town_forecast_3d
     comfort_index:
-      name: "Comfort Index"
+      name: "3H Comfort Index"
+      id: comfort_index_3H
     comfort_index_description:
-      name: "Comfort Index Description"
+      name: "3H Comfort Index Description"
+      id: comfort_index_description_3H
     weather:
-      name: "Weather"
+      name: "3H Weather"
+      id: weather_3H
     weather_code:
-      name: "Weather Code"
+      name: "3H Weather Code"
+      id: weather_code_3H
     weather_description:
-      name: "Weather Description"
+      name: "3H Weather Description"
+      id: weather_description_3H
     weather_icon:
-      name: "Weather Icon"
+      name: "3H Weather Icon"
+      id: weather_icon_3H
     wind_direction:
-      name: "Wind Direction"
+      name: "3H Wind Direction"
+      id: wind_direction_3H
     beaufort_scale:
-      name: "Beaufort Scale"
+      name: "3H Beaufort Scale"
+      id: beaufort_scale_3H
     city:
-      name: "City"
+      name: "3H City"
+      id: city_3H
     town:
-      name: "Town"
+      name: "3H Town"
+      id: town_3H
     last_updated:
-      name: "Last Updated"
+      name: "3H Last Updated"
+      id: last_updated_3H
 
   - platform: cwa_town_forecast
     cwa_town_forecast_id: town_forecast_7d
     max_comfort_index:
-      name: "Max Comfort Index"
+      name: "7D Max Comfort Index"
+      id: max_comfort_index_7D
     min_comfort_index:
-      name: "Min Comfort Index"
+      name: "7D Min Comfort Index"
+      id: min_comfort_index_7D
     max_comfort_index_description:
-      name: "Max Comfort Index Description"
+      name: "7D Max Comfort Index Description"
+      id: max_comfort_index_description_7D
     min_comfort_index_description:
-      name: "Min Comfort Index Description"
+      name: "7D Min Comfort Index Description"
+      id: min_comfort_index_description_7D
     wind_direction:
-      name: "Wind Direction"
+      name: "7D Wind Direction"
+      id: wind_direction_7D
     beaufort_scale:
-      name: "Beaufort Scale"
+      name: "7D Beaufort Scale"
+      id: beaufort_scale_7D
     weather:
-      name: "Weather"
+      name: "7D Weather"
+      id: weather_7D
     weather_code:
-      name: "Weather Code"
+      name: "7D Weather Code"
+      id: weather_code_7D
     weather_icon:
-      name: "Weather Icon"
+      name: "7D Weather Icon"
+      id: weather_icon_7D
     uv_exposure_level:
-      name: "UV Exposure Level"
+      name: "7D UV Exposure Level"
+      id: uv_exposure_level_7D
     weather_description:
-      name: "Weather Description"
+      name: "7D Weather Description"
+      id: weather_description_7D
     city:
-      name: "City"
+      name: "7D City"
+      id: city_7D
     town:
-      name: "Town"
+      name: "7D Town"
+      id: town_7D
     last_updated:
-      name: "Last Updated"
+      name: "7D Last Updated"
+      id: last_updated_7D
+#-----------------------------------7D -預測天氣圖名稱
+  - platform: template
+    name: "Day 1 Weather Icon(7D)"
+    id: day_icon_1
+  - platform: template
+    name: "Day 2 Weather Icon(7D)"
+    id: day_icon_2
+  - platform: template
+    name: "Day 3 Weather Icon(7D)"
+    id: day_icon_3
+  - platform: template
+    name: "Day 4 Weather Icon(7D)"
+    id: day_icon_4
+  - platform: template
+    name: "Day 5 Weather Icon(7D)"
+    id: day_icon_5
+  - platform: template
+    name: "Day 6 Weather Icon(7D)"
+    id: day_icon_6
+  - platform: template
+    name: "Day 7 Weather Icon(7D)"
+    id: day_icon_7
+
+#-----------------------------------HD -預測天氣圖名稱
+  - platform: template
+    name: "Hour 1 Weather Icon(3H)"
+    id: hour_weather_icon_1
+  - platform: template
+    name: "Hour 2 Weather Icon(3H)"
+    id: hour_weather_icon_2
+  - platform: template
+    name: "Hour 3 Weather Icon(3H)"
+    id: hour_weather_icon_3
+  - platform: template
+    name: "Hour 4 Weather Icon(3H)"
+    id: hour_weather_icon_4
+  - platform: template
+    name: "Hour 5 Weather Icon(3H)"
+    id: hour_weather_icon_5
+  - platform: template
+    name: "Hour 6 Weather Icon(3H)"
+    id: hour_weather_icon_6
+  - platform: template
+    name: "Hour 7 Weather Icon(3H)"
+    id: hour_weather_icon_7    
