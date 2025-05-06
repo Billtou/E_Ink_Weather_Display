@@ -27,7 +27,7 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
   on_connect:
-    - delay: 2s
+    - delay: 5s
     - script.execute: update_forecast_all
 
 api:
@@ -200,18 +200,23 @@ sensor:
     temperature:
       name: "3D Temperature"
       id: d3_temperature
+      accuracy_decimals: 0
     dew_point:
       name: "3D Dew Point"
       id: d3_dew_Point
+      accuracy_decimals: 0
     apparent_temperature:
       name: "3D Apparent Temperature"
       id: d3_apparent_temperature
+      accuracy_decimals: 0
     relative_humidity:
       name: "3D Relative Humidity"
       id: d3_relative_humidity
+      accuracy_decimals: 0
     wind_speed:
       name: "3D Wind Speed"
       id: d3_wind_speed
+      accuracy_decimals: 0
     probability_of_precipitation:
       name: "3D Probability Of Precipitation (3H)"
       id: d3_probability_of_precipitation_3h
@@ -220,27 +225,35 @@ sensor:
     temperature:
       name: "7D Avg Temperature"
       id: d7_avg_temperature
+      accuracy_decimals: 0
     max_temperature:
       name: "7D Max Temperature"
       id: d7_max_temperature
+      accuracy_decimals: 0
     min_temperature:
       name: "7D Min Temperature"
       id: d7_min_temperature
+      accuracy_decimals: 0
     dew_point:
       name: "7D Avg Dew Point"
       id: d7_avg_dew_point
+      accuracy_decimals: 0
     relative_humidity:
       name: "7D Relative Humidity"
       id: d7_relative_humidity
+      accuracy_decimals: 0
     max_apparent_temperature:
       name: "7D Max Apparent Temperature"
       id: d7_max_apparent_temperature
+      accuracy_decimals: 0
     min_apparent_temperature:
       name: "7D Min Apparent Temperature"
       id: d7_min_apparent_temperature
+      accuracy_decimals: 0
     wind_speed:
       name: "7D Wind Speed"
       id: d7_win_speed
+      accuracy_decimals: 0
     probability_of_precipitation:
       name: "7D Probability Of Precipitation (12H)"
       id: d7_probability_of_precipitation_12h
@@ -348,7 +361,7 @@ text_sensor:
   - platform: template
     name: "Moon Phase"
     id: moon_phase
-    update_interval: 30min
+    update_interval: 5min
     lambda: |-
       auto now = id(esp_time).now();
       auto now_tm = now.to_c_tm();
@@ -516,21 +529,6 @@ script:
               std::string rain = record.find_value(ElementValueKey::PROBABILITY_OF_PRECIPITATION, false, noon);
               ESP_LOGI("forecast", "  %s %s %s: icon %s, rain %s%%, min %s°C, max %s°C, min_appa %s°C, max_appa %s°C",
                        date_str.c_str(),weekday.c_str(),  "(Day)  ", icon.c_str(), rain.c_str(), min_val.c_str(), max_val.c_str(),  min_appa.c_str(), max_appa.c_str());
-
-              // night entry
-              std::tm night = now_tm;
-              night.tm_mday += d;
-              night.tm_hour = 21; night.tm_min = 0; night.tm_sec = 0;
-              std::mktime(&night);
-              auto esp_night = tm_to_esptime(night);
-              std::string min_val2 = record.find_value(ElementValueKey::MIN_TEMPERATURE, false, night);
-              std::string max_val2 = record.find_value(ElementValueKey::MAX_TEMPERATURE, false, night);
-              std::string min_appa2 = record.find_value(ElementValueKey::MIN_APPARENT_TEMPERATURE, false, noon);
-              std::string max_appa2 = record.find_value(ElementValueKey::MAX_APPARENT_TEMPERATURE, false, noon);                  
-              std::string icon2 = record.find_value(ElementValueKey::WEATHER_ICON, false, night);
-              std::string rain2 = record.find_value(ElementValueKey::PROBABILITY_OF_PRECIPITATION, false, night);
-              ESP_LOGI("forecast", "  %s %s %s: icon %s, rain %s%%, min %s°C, max %s°C, min_appa %s°C, max_appa %s°C",
-                       date_str.c_str(), weekday.c_str(), "(Night)",icon2.c_str(), rain2.c_str(), min_val2.c_str(), max_val2.c_str(),  min_appa2.c_str(), max_appa2.c_str());
 
             }
           }
