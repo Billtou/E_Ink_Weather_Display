@@ -17,12 +17,9 @@ external_components:
     components: [ display, waveshare_epaper ]  
     
 #----------------------------------------------------
-  - source:
-      type: git
-      url: https://github.com/parkghost/esphome-cwa-town-forecast
-      ref: main
+  - source: github://parkghost/esphome-cwa-town-forecast
     refresh: 0s
-    components: [ cwa_town_forecast ]
+    components: [cwa_town_forecast]
     
 packages:
   fonts_in: !include e_pagper/fonts.yaml
@@ -45,7 +42,7 @@ esphome:
       - light.turn_on:
           id: behind_led
           effect: "Rainbow Effect"  
-      - delay: 30s
+      - delay: 5s
       - light.turn_off:
           id: behind_led          
   platformio_options:  # 優化記憶體與快取處理
@@ -145,29 +142,8 @@ time:
                 - time.has_time:
                 - switch.is_on: auto_update
             then:
-              - button.press: refresh_weather_panel
-                # - logger.log: "執行update_forecast_3d 腳本"
-                # - script.execute: update_forecast_3d
-                # - delay: 2s
-                # - logger.log: "執行update_forecast_3d 腳本"
-                # - script.wait: update_forecast_3d
-                # - delay: 2s
-                # - logger.log: "執行update_forecast_3d 腳本"
-                # - script.execute: update_forecast_7d
-                # - delay: 2s
-                # - logger.log: "執行update_forecast_3d 腳本"
-                # - script.wait: update_forecast_7d
-                # - delay: 2s
-                # - logger.log: "執行 analyze_data 腳本"
-                # - script.execute: analyze_data
-                # - logger.log: "等待5秒"
-                # - delay: 2s
-                # - logger.log: "執行 更新畫面動作"
-                # - component.update: my_display
-interval:
-  - interval: 5min
-    then:
-      - script.execute: check_precip_and_toggle_led
+              - logger.log: "定時觸發 refresh_panel_full_update"
+              - script.execute: refresh_panel_full_update
 
 cwa_town_forecast:
   - api_key: !lambda return id(cwa_api_key).state;
@@ -234,13 +210,8 @@ button:
   - platform: template
     name: "Update Forecast"
     on_press:
-      - script.wait: update_forecast_7d
-      - delay: 2s
-      - script.execute: update_forecast_7d      
-      - delay: 2s
-      - script.wait: update_forecast_3d
-      - delay: 2s
-      - script.execute: update_forecast_3d
+      then:
+        - script.execute: update_forecast_all
     internal: true
 
   - platform: template
@@ -290,6 +261,8 @@ button:
             - delay: 2s
             - logger.log: "執行 analyze_data 腳本"
             - script.execute: analyze_data
+            - delay: 2s
+            - script.wait: analyze_data
             - logger.log: "等待5秒"
             - delay: 2s
             - logger.log: "執行 更新畫面動作"
@@ -310,27 +283,6 @@ switch:
     icon: mdi:led-on 
 
 script:
-  - id: check_precip_and_toggle_led
-    mode: restart
-    then:
-      - if:
-          condition:
-            lambda: |-
-              return id(rainy_red_led).state;
-          then:
-            - if:
-                condition:
-                  lambda: |-
-                    return id(d3_probability_of_precipitation_3h).state >= 20;
-                then:
-                  - light.turn_on:
-                      id: behind_led
-                      effect: "Rainy Red Pulse"
-                else:
-                  - light.turn_off: behind_led
-          else:
-            - light.turn_off: behind_led  # switch 關掉時強制熄燈
-
   - id: update_forecast_3d
     then:
       - component.update: town_forecast_3d
@@ -350,11 +302,51 @@ script:
       - script.wait: update_forecast_7d
       - delay: 3s
 
+
+  - id: refresh_panel_full_update
+    mode: single
+    then:
+      - if:
+          condition:
+            and:
+              - wifi.connected:
+              - time.has_time:
+              # - switch.is_on: auto_update
+          then:
+            - logger.log: "執行 update_forecast_3d 腳本"
+            - script.execute: update_forecast_3d
+            - delay: 2s
+
+            - logger.log: "等待 update_forecast_3d 結束"
+            - script.wait: update_forecast_3d
+            - delay: 2s
+
+            - logger.log: "執行 update_forecast_7d 腳本"
+            - script.execute: update_forecast_7d
+            - delay: 2s
+
+            - logger.log: "等待 update_forecast_7d 結束"
+            - script.wait: update_forecast_7d
+            - delay: 2s
+
+            - logger.log: "執行 analyze_data 腳本"
+            - script.execute: analyze_data
+            - delay: 2s
+
+            - logger.log: "等待 analyze_data 結束"
+            - script.wait: analyze_data
+
+            - logger.log: "等待 5 秒"
+            - delay: 5s
+
+            - logger.log: "執行 更新畫面動作"
+            - component.update: my_display
+
+
   - id: analyze_data
     then:
       - lambda: |-
           using namespace cwa_town_forecast;
-
           auto forecast_3d_data = id(town_forecast_3d).get_data();
           auto forecast_7d_data = id(town_forecast_7d).get_data();
           bool fallback = true;
@@ -412,7 +404,7 @@ script:
           //ESP_LOGI("forecast", "  Max Comfort Index Description: %s", forecast_7d_data.find_value(ElementValueKey::MAX_COMFORT_INDEX_DESCRIPTION, fallback, now.to_c_tm()).c_str());
           //ESP_LOGI("forecast", "  Min Comfort Index Description: %s", forecast_7d_data.find_value(ElementValueKey::MIN_COMFORT_INDEX_DESCRIPTION, fallback, now.to_c_tm()).c_str());
           ESP_LOGI("forecast", "  Probability Of Precipitation: %s%%", forecast_7d_data.find_value(ElementValueKey::PROBABILITY_OF_PRECIPITATION, fallback, now.to_c_tm()).c_str()); //需要
-          //ESP_LOGI("forecast", "  UV Index: %s", forecast_7d_data.find_value(ElementValueKey::UV_INDEX, fallback, now.to_c_tm()).c_str());
+          ESP_LOGI("forecast", "  UV Index: %s", forecast_7d_data.find_value(ElementValueKey::UV_INDEX, fallback, now.to_c_tm()).c_str()); //需要
           //ESP_LOGI("forecast", "  UV Exposure Level: %s", forecast_7d_data.find_value(ElementValueKey::UV_EXPOSURE_LEVEL, fallback, now.to_c_tm()).c_str());
           //ESP_LOGI("forecast", "  Weather: %s", forecast_7d_data.find_value(ElementValueKey::WEATHER, fallback, now.to_c_tm()).c_str());
           //ESP_LOGI("forecast", "  Weather Code: %s", forecast_7d_data.find_value(ElementValueKey::WEATHER_CODE, fallback, now.to_c_tm()).c_str());
@@ -469,14 +461,10 @@ display:
     lambda: |-
       int width = it.get_width();
       int height = it.get_height();
-      auto BLACK = Color(0, 0, 0, 0);
-      auto RED = Color(255, 0, 0, 0);
-      auto WHITE = Color(255, 255, 255, 0);
-      auto YELLOW = Color(255, 255, 0);
-      if (it.get_display_type() == DisplayType::DISPLAY_TYPE_BINARY) {
-        BLACK = COLOR_ON;
-        WHITE = COLOR_OFF;
-      }
+      //auto BLACK = Color(0, 0, 0, 0);
+      //auto RED = Color(255, 0, 0, 0);
+      //auto WHITE = Color(255, 255, 255, 0);
+      //auto YELLOW = Color(255, 255, 0);
       it.fill(id(color_white));  //全螢幕刷新成白色
       const std::map<std::string, std::string> ICON_NAME_TO_UNICODE_MAP = {
           {"sunny","\U000F0599"},
@@ -513,6 +501,9 @@ display:
 
       auto now = id(esp_time).now();
       std::tm now_tm = now.to_c_tm();
+      // --------------------------------------安全讀取------------------------------------------------------
+
+
 
       //****************************************** 日曆 *****************************************************
       // 獲取當前月份的數字
@@ -600,65 +591,35 @@ display:
       it.print(room1_icon_x, (room2_icon_y+icon_gap_y+icon_gap_y+icon_gap_y+icon_gap_y)-room2_icon_gap, id(icon_room),id(color_red), TextAlign::CENTER_LEFT,"\U000F15FA"); //wind_speed風速圖標
 
       //data 
-      // 緩衝區
-      char humidity[16];
-      char uv[16];
-      char temp_hi[16];
-      char temp_lo[16];
-      char rainy[16];
-      char uv_text[64]; 
-      char wind_text[32];
 
+      auto format_value = [](float value, const char* fmt, const char* fallback) -> std::string {
+        if (std::isnan(value)) return std::string(fallback);
+        char buf[32];
+        snprintf(buf, sizeof(buf), fmt, value);
+        return std::string(buf);
+      };
+      
       // 濕度
-      if (isnan(id(d7_relative_humidity).state)) {
-        snprintf(humidity, sizeof(humidity), "--%%");
-      } else {
-        snprintf(humidity, sizeof(humidity), "%.0f%%", id(d7_relative_humidity).state);
-      }
-
-      // 最高溫
-      if (isnan(id(d7_max_temperature).state)) {
-        snprintf(temp_hi, sizeof(temp_hi), "--°");
-      } else {
-        snprintf(temp_hi, sizeof(temp_hi), "%.0f°", id(d7_max_temperature).state);
-      }
-
-      // 最低溫
-      if (isnan(id(d7_min_temperature).state)) {
-        snprintf(temp_lo, sizeof(temp_lo), "--°");
-      } else {
-        snprintf(temp_lo, sizeof(temp_lo), "%.0f°", id(d7_min_temperature).state);
-      }
-
+      std::string humidity = format_value(id(d7_relative_humidity).state, "%.0f%%", "--%");
       // 降雨機率
-      if (isnan(id(d7_probability_of_precipitation_12h).state)) {
-        snprintf(rainy, sizeof(rainy), "--%%");
-      } else {
-        snprintf(rainy, sizeof(rainy), "%.0f%%", id(d7_probability_of_precipitation_12h).state);
-      }
-
-      // UV
-      float uv_value = id(d7_uv_index).state;
-      if (isnan(uv_value) || uv_value < 0) {
-        snprintf(uv_text, sizeof(uv_text), "-- %s", id(d7_uv_exposure_level).state.c_str());
-      } else {
-        snprintf(uv_text, sizeof(uv_text), "%.0f uv%s", uv_value, id(d7_uv_exposure_level).state.c_str());
-      }
-
+      std::string rainy = format_value(id(d7_probability_of_precipitation_12h).state, "%.0f%%", "--%");      
+      // 最高溫
+      std::string temp_hi = format_value(id(d7_max_temperature).state, "%.0f°%", "--°");
+      // 最低溫
+      std::string temp_lo = format_value(id(d7_min_temperature).state, "%.0f°%", "--°");
+      // UV + 文字說明
+      std::string uv_value = format_value(id(d7_uv_index).state, "%.0f uv%", "-- uv") + id(d7_uv_exposure_level).state;
       // 風速 + 風向
-      if (isnan(id(d7_win_speed).state)) {
-        snprintf(wind_text, sizeof(wind_text), "-- m/s%s", id(d7_wind_direction).state.c_str());
-      } else {
-        snprintf(wind_text, sizeof(wind_text), "%.0f m/s%s", id(d7_win_speed).state, id(d7_wind_direction).state.c_str());
-      }
+      std::string wind_value = format_value(id(d7_win_speed).state, "%.0f m/s%", "-- m/s") + id(d7_wind_direction).state;
 
       // 顯示輸出到電子紙
-      it.print((room1_icon_x + room1_icon_x_gap)-data_gap_y, room2_icon_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER, humidity);       // 濕度
-      it.print((room1_icon_x + room1_icon_x_gap+ room1_icon_x_gap)-data_gap_y, room2_icon_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER, rainy); // 降雨機率
-      it.print((room1_icon_x + room1_icon_x_gap)-data_gap_y, room2_icon_y + icon_gap_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER, temp_hi);    // 最高溫
-      it.print((room1_icon_x + room1_icon_x_gap+ room1_icon_x_gap)-data_gap_y, room2_icon_y + icon_gap_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER, temp_lo); // 最低溫
-      it.print((room1_icon_x + room1_icon_x_gap+ room1_icon_x_gap)-5, room2_icon_y + icon_gap_y + icon_gap_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER_RIGHT, uv_text); // UV
-      it.print((room1_icon_x + room1_icon_x_gap+ room1_icon_x_gap)-5, room2_icon_y + icon_gap_y + icon_gap_y + icon_gap_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER_RIGHT, wind_text); // 風速
+      it.print((room1_icon_x + room1_icon_x_gap)-data_gap_y, room2_icon_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER, humidity.c_str());  // 濕度
+      //it.print((room1_icon_x + room1_icon_x_gap)-data_gap_y, room2_icon_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER, humidity);       // 濕度
+      it.print((room1_icon_x + room1_icon_x_gap+ room1_icon_x_gap)-data_gap_y, room2_icon_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER, rainy.c_str()); // 降雨機率
+      it.print((room1_icon_x + room1_icon_x_gap)-data_gap_y, room2_icon_y + icon_gap_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER, temp_hi.c_str());    // 最高溫
+      it.print((room1_icon_x + room1_icon_x_gap+ room1_icon_x_gap)-data_gap_y, room2_icon_y + icon_gap_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER, temp_lo.c_str()); // 最低溫
+      it.print((room1_icon_x + room1_icon_x_gap+ room1_icon_x_gap)-5, room2_icon_y + icon_gap_y + icon_gap_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER_RIGHT, uv_value.c_str()); // UV
+      it.print((room1_icon_x + room1_icon_x_gap+ room1_icon_x_gap)-5, room2_icon_y + icon_gap_y + icon_gap_y + icon_gap_y + icon_gap_y, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER_RIGHT, wind_value.c_str()); // 風速
 
       //************************ last_updated and city name tow name IP address ************************
       char info_text[64];
@@ -673,14 +634,25 @@ display:
       it.print(795, 0, id(font_small_new), id(color_black), TextAlign::TOP_RIGHT, info_text);
       
       //************************ TODAY weather and  temperature ************************
-      // 圖示對應：防止找不到 icon key 時 crash
-      std::string weather_icon_key = id(d7_weather_icon).has_state() ? id(d7_weather_icon).state : "";
+
+      // 取得氣象圖示鍵值，如果 sensor 沒有 state 就設為空字串
+      std::string weather_icon_key = id(d7_weather_icon).has_state() ? id(d7_weather_icon).state : "sync";
+
+      // 嘗試從 icon map 中取得對應 unicode 字元，找不到則用預設值 "sunny"
       auto icon_map_it = ICON_NAME_TO_UNICODE_MAP.find(weather_icon_key);
-      std::string unicode_icon = (icon_map_it != ICON_NAME_TO_UNICODE_MAP.end()) ? icon_map_it->second : "sunny"; // ☁ 預設雲朵
+      std::string unicode_icon;
+
+      if (icon_map_it != ICON_NAME_TO_UNICODE_MAP.end()) {
+        unicode_icon = icon_map_it->second;
+      } else {
+        ESP_LOGW("weather", "未找到圖示 key: '%s'，使用預設 'sunny'", weather_icon_key.c_str());
+        unicode_icon = ICON_NAME_TO_UNICODE_MAP.at("sunny");  // 保證 sunny 存在
+      }
 
       // 顯示 icon
-      it.printf(400, 5, id(icon_today), id(color_black), TextAlign::TOP_CENTER, "%s", unicode_icon.c_str());
+      it.printf(400, 5, id(icon_today), id(color_black), TextAlign::TOP_CENTER, unicode_icon.c_str());
 
+      //---------------------------------------------------------------------------------------------------------
       // 平均溫度與體感溫度
       char avgtemp[16];
       char max_appa[16];
@@ -710,14 +682,14 @@ display:
 
       // 顯示資料
       it.printf(780, 50, id(font_today_temp), id(color_black), TextAlign::TOP_RIGHT, avgtemp);
-      it.print(700, 185, id(font_jyuugothic_Bold_2), id(color_red), TextAlign::BOTTOM_RIGHT, max_comfort.c_str());
-      it.print(700, 220, id(font_jyuugothic_Bold_2), id(color_red), TextAlign::BOTTOM_RIGHT, min_comfort.c_str());
+      it.print(690, 185, id(font_jyuugothic_Bold_2), id(color_red), TextAlign::BOTTOM_RIGHT, max_comfort.c_str());
+      it.print(690, 220, id(font_jyuugothic_Bold_2), id(color_red), TextAlign::BOTTOM_RIGHT, min_comfort.c_str());
       it.print(730, 185, id(font_jyuugothic_Bold_2), id(color_red), TextAlign::BOTTOM_LEFT, max_appa);
       it.print(730, 220, id(font_jyuugothic_Bold_2), id(color_red), TextAlign::BOTTOM_LEFT, min_appa);
 
       // 體感 icon
-      it.print(730, 177, id(icon_room), id(color_black), TextAlign::BOTTOM_RIGHT, "\U000F053F");
-      it.print(730, 210, id(icon_room), id(color_black), TextAlign::BOTTOM_RIGHT, "\U000F053F");
+      it.print(725, 177, id(icon_room), id(color_black), TextAlign::BOTTOM_RIGHT, "\U000F053F");
+      it.print(725, 210, id(icon_room), id(color_black), TextAlign::BOTTOM_RIGHT, "\U000F053F");
 
       //************************ SUN AND MOON  ************************
       // Print sunrise and sun setting dates
@@ -757,11 +729,8 @@ display:
       int forecast_y=320;
       int forecast_icon_gap=40;
       int forecast_data_gap=90;
-      int forecast_x_gap=90;      
+      //int forecast_x_gap=90;      
 
-      //it.printf(forecast_x, forecast_y+forecast_icon_gap-20, id(icon_forecast_bg),id(color_yellow), TextAlign::CENTER,"\U000F0765"); 
-      //it.printf(forecast_x+forecast_x_gap, forecast_y+forecast_icon_gap-20, id(icon_forecast_bg),id(color_yellow), TextAlign::TOP_CENTER,"\U000F0765");
-      
       // forecast matrix drawing
         {
           const char *weekdays[] = {"日", "一", "二", "三", "四", "五", "六"};
@@ -774,7 +743,7 @@ display:
           std::string mode = id(forecast_mode).state;
 
           bool is_daily = id(forecast_mode).state.rfind("daily", 0) == 0;
-          int cols = is_daily ? 6 : 6;
+          int cols = 6;
           int cell_w = area_w / cols;
           int cell_h = area_h / 4;
           // draw vertical separators
@@ -815,7 +784,7 @@ display:
               tm_ref.tm_hour += c; tm_ref.tm_min = 0; tm_ref.tm_sec = 0;
               label = tm_to_esptime(tm_ref).strftime("%I%p");
             }
-            it.printf(sx + cell_w / 2, sy + cell_h / 2, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER, "%s", label.c_str());
+            it.printf(sx + cell_w / 2, sy + cell_h / 2, id(font_jyuugothic_Light), id(color_black), TextAlign::CENTER, label.c_str());
             sy += cell_h;
             // row2: icon
             std::string icon_key;
@@ -859,7 +828,6 @@ display:
                 id(icon_forecast),          // 天氣圖示字型
                 should_highlight ? id(color_white) : id(color_red), // 顏色選擇
                 TextAlign::CENTER,          // 居中對齊
-                "%s",                       // 格式字串
                 unicode.c_str()             // 天氣圖示的 Unicode
             );
 
@@ -886,7 +854,12 @@ display:
               v1 = data7.find_value(ElementValueKey::TEMPERATURE, false, tm_ref) + "°";
               v2 = data7.find_value(ElementValueKey::PROBABILITY_OF_PRECIPITATION, false, tm_ref) + "%%";
               it.printf(forecast_x - 60, forecast_y + forecast_data_gap, id(icon_room), id(color_red), TextAlign::CENTER, "\U000F1B0F"); // 溫度平均
-              it.printf(forecast_x - 60, forecast_y + forecast_data_gap + forecast_icon_gap, id(icon_room), id(color_red), TextAlign::CENTER, "\U000F054B"); // 下雨              
+              it.printf(forecast_x - 60, forecast_y + forecast_data_gap + forecast_icon_gap, id(icon_room), id(color_red), TextAlign::CENTER, "\U000F054A"); // 下雨    
+            } else if (mode == "daily_avg_temp_uv") {
+              v1 = data7.find_value(ElementValueKey::TEMPERATURE, false, tm_ref) + "°";
+              v2 = data7.find_value(ElementValueKey::UV_INDEX, false, tm_ref) + "%";
+              it.printf(forecast_x - 60, forecast_y + forecast_data_gap, id(icon_room), id(color_red), TextAlign::CENTER, "\U000F1B0F"); // 溫度平均
+              it.printf(forecast_x - 60, forecast_y + forecast_data_gap + forecast_icon_gap, id(icon_room), id(color_red), TextAlign::CENTER, "\U000F17FE"); // UV    
             } else if (mode == "hourly_temp_humid") {
               v1 = data3.find_value(ElementValueKey::TEMPERATURE, false, tm_ref) + "°";
               v2 = data3.find_value(ElementValueKey::RELATIVE_HUMIDITY, false, tm_ref) + "%%";
@@ -896,15 +869,45 @@ display:
               v1 = data3.find_value(ElementValueKey::TEMPERATURE, false, tm_ref) + "°";
               v2 = data3.find_value(ElementValueKey::PROBABILITY_OF_PRECIPITATION, false, tm_ref) + "%%";
               it.printf(forecast_x - 60, forecast_y + forecast_data_gap, id(icon_room), id(color_red), TextAlign::CENTER, "\U000F050F"); // 溫度計
-              it.printf(forecast_x - 60, forecast_y + forecast_data_gap + forecast_icon_gap, id(icon_room), id(color_red), TextAlign::CENTER, "\U000F054B"); // 下雨              
+              it.printf(forecast_x - 60, forecast_y + forecast_data_gap + forecast_icon_gap, id(icon_room), id(color_red), TextAlign::CENTER, "\U000F054A"); // 下雨              
             } else if (mode == "hourly_feel_rainy") {
               v1 = data3.find_value(ElementValueKey::APPARENT_TEMPERATURE, false, tm_ref) + "°";
               v2 = data3.find_value(ElementValueKey::PROBABILITY_OF_PRECIPITATION, false, tm_ref) + "%%";
               it.printf(forecast_x - 60, forecast_y + forecast_data_gap, id(icon_room), id(color_red), TextAlign::CENTER, "\U000F053F"); // 衣服
-              it.printf(forecast_x - 60, forecast_y + forecast_data_gap + forecast_icon_gap, id(icon_room), id(color_red), TextAlign::CENTER, "\U000F054B"); // 下雨              
+              it.printf(forecast_x - 60, forecast_y + forecast_data_gap + forecast_icon_gap, id(icon_room), id(color_red), TextAlign::CENTER, "\U000F054A"); // 下雨              
             }
             it.printf(sx + cell_w / 2, sy + cell_h / 2, id(font_medium), id(color_black), TextAlign::CENTER, v1.c_str());
             sy += cell_h;
+            if (mode == "daily_avg_temp_uv") {
+                
+              std::string v = v2;
+              size_t i = 0;
+              // 尋找開頭的第一個數字（可能含 +/-)
+              while (i < v.size() && !((v[i] >= '0' && v[i] <= '9') || v[i] == '-' || v[i] == '+')) i++;
+
+              size_t start = i;
+              // 讀取數字部分（含小數點）
+              while (i < v.size() && ((v[i] >= '0' && v[i] <= '9') || v[i] == '.')) i++;
+
+              std::string num_str = (start < v.size()) ? v.substr(start, i - start) : "0";
+              float uv = std::stof(num_str);
+
+              if (uv > 7) {
+                it.printf((sx + cell_w / 2)+1, sy + (cell_h / 2)-5, id(icon_forecast_bg_uv), id(color_red), TextAlign::CENTER, "\U000F0765");
+                it.printf(sx + cell_w / 2, sy + cell_h / 2, id(font_medium), id(color_white), TextAlign::CENTER, v2.c_str());
+              } else {
+                it.printf(sx + cell_w / 2, sy + cell_h / 2, id(font_medium), id(color_black), TextAlign::CENTER, v2.c_str());
+              }
+
+              //if (std::stof(v2) > 7) {
+              //  it.printf((sx + cell_w / 2)+1, sy + (cell_h / 2)-5, id(icon_forecast_bg_uv), id(color_red), TextAlign::CENTER, "\U000F0765" );
+              //  it.printf(sx + cell_w / 2, sy + cell_h / 2, id(font_medium), id(color_white), TextAlign::CENTER, v2.c_str());
+              //} else {
+              //  it.printf(sx + cell_w / 2, sy + cell_h / 2, id(font_medium), id(color_black), TextAlign::CENTER, v2.c_str());
+              //}
+
+            } else {
             it.printf(sx + cell_w / 2, sy + cell_h / 2, id(font_medium), id(color_black), TextAlign::CENTER, v2.c_str());
+            }
           }
         }
