@@ -1,0 +1,324 @@
+
+select:
+  - platform: template
+    id: city_name
+    name: "City Name 縣市"
+    restore_value: true
+    icon: mdi:city
+    options:
+      - "宜蘭縣"
+      - "花蓮縣"
+      - "臺東縣"
+      - "澎湖縣"
+      - "金門縣"
+      - "連江縣"
+      - "臺北市"
+      - "新北市"
+      - "桃園市"
+      - "臺中市"
+      - "臺南市"
+      - "高雄市"
+      - "基隆市"
+      - "新竹縣"
+      - "新竹市"
+      - "苗栗縣"
+      - "彰化縣"
+      - "南投縣"
+      - "雲林縣"
+      - "嘉義縣"
+      - "嘉義市"
+      - "屏東縣"
+    initial_option: $default_city_name
+    optimistic: true
+    entity_category: "config"
+
+  - platform: template
+    name: "Sidebar Type 日月像"
+    icon: mdi:theme-light-dark
+    id: options_windows
+    entity_category: config
+    optimistic: true
+    options:
+      - nothing      
+      - sun_and_moon
+    initial_option: sun_and_moon
+
+  - platform: template
+    name: "Forcast Type 預報模式"
+    entity_category: config
+    icon: mdi:format-list-bulleted-type
+    id: forecast_mode
+    optimistic: true
+    options:
+      - daily_temp_high_low
+      - daily_feel_high_low
+      - daily_avg_temp_humid   
+      - daily_avg_temp_rainy     
+      - hourly_temp_humid
+      - hourly_temp_rainy 
+      - hourly_feel_rainy  
+    initial_option: daily_temp_high_low 
+
+
+sensor:
+  - platform: cwa_town_forecast
+    cwa_town_forecast_id: town_forecast_3d
+    mode: 3-DAYS
+    # temperature:
+    #   name: "3D Temperature" # 使用
+    #   id: d3_temperature
+    #   accuracy_decimals: 0
+    #   internal: true
+    # dew_point:
+    #   name: "3D Dew Point"
+    #   id: d3_dew_Point
+    #   accuracy_decimals: 0
+    #   internal: true
+    # apparent_temperature:
+    #   name: "3D Apparent Temperature" # 使用
+    #   id: d3_apparent_temperature
+    #   accuracy_decimals: 0
+    # relative_humidity:
+    #   name: "3D Relative Humidity"  # 使用
+    #   id: d3_relative_humidity
+    #   accuracy_decimals: 0
+    #   internal: true
+    # wind_speed:
+    #   name: "3D Wind Speed"   # 使用
+    #   id: d3_wind_speed
+    #   accuracy_decimals: 0
+    #   # internal: true
+    probability_of_precipitation:
+      name: "3D Probability Of Precipitation (3H)"
+      id: d3_probability_of_precipitation_3h
+      internal: true
+
+  - platform: cwa_town_forecast
+    cwa_town_forecast_id: town_forecast_7d
+    mode: 7-DAYS
+    temperature:
+      name: "7D Avg Temperature"  # 使用
+      id: d7_avg_temperature
+      accuracy_decimals: 0
+      internal: true
+    max_temperature:
+      name: "7D Max Temperature" # 使用
+      id: d7_max_temperature
+      accuracy_decimals: 0
+      internal: true
+    min_temperature:
+      name: "7D Min Temperature" # 使用
+      id: d7_min_temperature
+      accuracy_decimals: 0
+      internal: true
+    # dew_point:
+    #   name: "7D Avg Dew Point"
+    #   id: d7_avg_dew_point
+    #   accuracy_decimals: 0
+    #   internal: true
+    relative_humidity:
+      name: "7D Relative Humidity" # 使用
+      id: d7_relative_humidity
+      accuracy_decimals: 0
+      internal: true
+    max_apparent_temperature:
+      name: "7D Max Apparent Temperature"
+      id: d7_max_apparent_temperature
+      accuracy_decimals: 0
+      internal: true
+    min_apparent_temperature:
+      name: "7D Min Apparent Temperature"
+      id: d7_min_apparent_temperature
+      accuracy_decimals: 0
+      internal: true
+    wind_speed:
+      name: "7D Wind Speed"  #使用
+      id: d7_win_speed
+      accuracy_decimals: 0
+      internal: true
+    probability_of_precipitation:
+      name: "7D Probability Of Precipitation (12H)"  # 使用
+      id: d7_probability_of_precipitation_12h
+      internal: true
+    uv_index:
+      name: "7D UV Index"  # 使用
+      id: d7_uv_index
+      internal: true
+   
+
+
+text_sensor:
+#   - platform: cwa_town_forecast
+#     cwa_town_forecast_id: town_forecast_3d
+#     mode: 3-DAYS
+#     # comfort_index:
+#     #   name: "3D Comfort Index"
+#     #   id: d3_comfort_index
+#     #   internal: true
+#     comfort_index_description:
+#       name: "3D Comfort Index Description" # 使用
+#       id: d3_comfort_index_description
+#       internal: true
+#     weather:
+#       name: "3D Weather"  # 使用
+#       id: d3_weather
+#       internal: true
+#     weather_code:
+#       name: "3D Weather Code"
+#       id: d3_weather_code
+#       internal: true
+#     weather_description:
+#       name: "3D Weather Description"
+#       id: d3_weather_description
+#       internal: true
+#     weather_icon:
+#       name: "3D Weather Icon"  # 使用
+#       id: d3_weather_icon
+#     wind_direction:
+#       name: "3D Wind Direction"  # 使用
+#       id: d3_wind_direction
+#       internal: true
+#     beaufort_scale:
+#       name: "3D Beaufort Scale"
+#       id: d3_beaufort_scale
+#       internal: true
+#     city:
+#       name: "3D City"
+#       id: d3_city
+#       internal: true
+#     town:
+#       name: "3D Town"
+#       id: d3_town
+#       internal: true
+#     last_updated:
+#       name: "3D Last Updated"
+#       id: d3_last_updated
+#       internal: true
+
+  - platform: cwa_town_forecast
+    cwa_town_forecast_id: town_forecast_7d
+    mode: 7-DAYS
+    max_comfort_index:
+      name: "7D Max Comfort Index"
+      id: d7_max_comfort_index
+      internal: true
+    min_comfort_index:
+      name: "7D Min Comfort Index"
+      id: d7_min_comfort_index
+      internal: true
+    max_comfort_index_description:
+      name: "7D Max Comfort Index Description" # 使用
+      id: d7_max_comfort_index_description
+      internal: true
+    min_comfort_index_description:
+      name: "7D Min Comfort Index Description"  # 使用
+      id: d7_min_comfort_index_description
+      internal: true
+    wind_direction:
+      name: "7D Wind Direction" # 使用
+      id: d7_wind_direction
+      internal: true
+    # beaufort_scale:
+    #   name: "7D Beaufort Scale"
+    #   id: d7_beaufort_scale
+      # internal: true
+    weather:
+      name: "7D Weather" # 使用
+      id: d7_weather
+      internal: true
+    # weather_code:
+    #   name: "7D Weather Code"
+    #   internal: true
+    #   id: d7_weather_code
+    weather_icon:
+      name: "7D Weather Icon"  # 使用
+      id: d7_weather_icon
+      internal: true
+    uv_exposure_level:
+      name: "7D UV Exposure Level"  # 使用
+      id: d7_uv_exposure_level
+      internal: true
+    # weather_description:
+    #   name: "7D Weather Description" 
+    #   id: d7_weather_description
+      # internal: true
+    city:
+      name: "7D City" # 使用
+      id: d7_city
+      icon: mdi:city
+    town:
+      name: "7D Town" # 使用
+      id: d7_town
+      icon: mdi:town-hall
+    last_updated:
+      name: "7D Last Updated"  # 使用
+      id: d7_last_updated
+
+  - platform: wifi_info
+    ip_address:
+      name: "IP"      
+      icon: "mdi:ip-outline"
+      id: ip_address_display
+    ssid:
+      name: "SSID"
+      icon: "mdi:router-wireless"
+    mac_address:
+      name: "MAC"
+      icon: "mdi:lan"
+      # internal: true
+
+  - platform: template
+    name: "Moon Phase"  # 使用
+    id: moon_phase
+    update_interval: $default_update_interval
+    lambda: |-
+      auto now = id(esp_time).now();
+      auto now_tm = now.to_c_tm();
+      int year = now_tm.tm_year + 1900;
+      int month = now_tm.tm_mon + 1;
+      int day = now_tm.tm_mday;
+      if (month < 3) {
+        year--;
+        month += 12;
+      }
+      month++;
+      double c = 365.25 * year;
+      double e = 30.6 * month;
+      double jd = c + e + day - 694039.09;
+      jd /= 29.5305882;
+      double b = jd - floor(jd);
+      double age = b * 29.5305882;
+      if (age < 1.84566)
+        return {"new_moon"};
+      else if (age < 5.53699)
+        return {"waxing_crescent"};
+      else if (age < 9.22831)
+        return {"first_quarter"};
+      else if (age < 12.91963)
+        return {"waxing_gibbous"};
+      else if (age < 16.61096)
+        return {"full_moon"};
+      else if (age < 20.30228)
+        return {"waning_gibbous"};
+      else if (age < 23.99361)
+        return {"last_quarter"};
+      else if (age < 27.68493)
+        return {"waning_crescent"};
+      else
+        return {"new_moon"};
+    internal: true
+
+  - platform: sun
+    name: "Sunrise Time" #使用
+    id: sun_sunrise
+    type: sunrise
+    format: "%H:%M"
+    update_interval: $default_update_interval
+    internal: true
+  - platform: sun
+    name: "Sunset Time" #使用
+    id: sun_sunset
+    type: sunset
+    format: "%H:%M"
+    update_interval: $default_update_interval
+    internal: true
