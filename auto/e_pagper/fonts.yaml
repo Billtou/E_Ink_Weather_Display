@@ -183,6 +183,11 @@ font:
     size: 50
     glyphs:     
       - "\U000F0765" # 底圖圓形
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: icon_forecast_bg_uv
+    size: 42
+    glyphs:     
+      - "\U000F0765" # 底圖圓形      
 
   - file: 'fonts/materialdesignicons-webfont.ttf'
     id: icon_room
@@ -199,7 +204,7 @@ font:
       - "\U000F17FF" # mdi:sun-wireless-outline
       - "\U000F15FA" # mdi:windsock 
       - "\U000F1A86" # mdi:water-thermometer-outline
-      - "\U000F0E03" # mdi:mdi:thermometer-chevron-up
+      - "\U000F0E03" # mdi:thermometer-chevron-up
       - "\U000F0E02" # mdi:thermometer-chevron-down
       - "\U000F0596" # mdi:weather-pouring
       - "\U000F12A3" # mdi:battery-high
@@ -210,7 +215,7 @@ font:
       - "\U000F0A7B" # mdi:tshirt-crew
       - "\U000F0765" # 底圖圓形
       - "\U000F17FE" # mdi:sun-wireless UV
-      - "\U000F054A" # 雨傘實心
+      - "\U000F054A" # 雨傘實心 Umbrella
       - "\U000F1B0F" # 平均溫度
 
   - file: 'fonts/materialdesignicons-webfont.ttf'
