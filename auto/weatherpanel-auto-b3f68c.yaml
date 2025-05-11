@@ -10,7 +10,7 @@ substitutions:
   default_api: "CWA-E02B6C42-9A1B-4FD7-B5A6-BA605006274E"
   default_latitude: "24.153935542067238"
   default_longitude: "120.63569437196482"
-  default_update_interval: "60s"
+  default_update_interval: "10s"
   
 external_components:
   - source: github://tsunglung/esphome_epaper
@@ -146,7 +146,6 @@ time:
                 - switch.is_on: auto_update
             then:
               - button.press: refresh_weather_panel
-
                 # - logger.log: "執行update_forecast_3d 腳本"
                 # - script.execute: update_forecast_3d
                 # - delay: 2s
@@ -166,7 +165,7 @@ time:
                 # - logger.log: "執行 更新畫面動作"
                 # - component.update: my_display
 interval:
-  - interval: 10min
+  - interval: 5min
     then:
       - script.execute: check_precip_and_toggle_led
 
@@ -370,20 +369,20 @@ script:
           ESP_LOGI("forecast", "Current Forecast(Nearly 1-3 hours):");
           ESP_LOGI("forecast", "  LocationsName: %s", forecast_3d_data.locations_name.c_str());
           ESP_LOGI("forecast", "  LocationName: %s", forecast_3d_data.location_name.c_str());
-          ESP_LOGI("forecast", "  Temperature: %s°C", forecast_3d_data.find_value(ElementValueKey::TEMPERATURE, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Dew Point: %s°C", forecast_3d_data.find_value(ElementValueKey::DEW_POINT, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Apparent Temperature: %s°C", forecast_3d_data.find_value(ElementValueKey::APPARENT_TEMPERATURE, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Comfort Index: %s", forecast_3d_data.find_value(ElementValueKey::COMFORT_INDEX, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Comfort Index Description: %s", forecast_3d_data.find_value(ElementValueKey::COMFORT_INDEX_DESCRIPTION, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Relative Humidity: %s%%", forecast_3d_data.find_value(ElementValueKey::RELATIVE_HUMIDITY, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Wind Direction: %s", forecast_3d_data.find_value(ElementValueKey::WIND_DIRECTION, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Wind Speed: %s m/s", forecast_3d_data.find_value(ElementValueKey::WIND_SPEED, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Beaufort Scale: %s", forecast_3d_data.find_value(ElementValueKey::BEAUFORT_SCALE, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Probability Of Precipitation: %s%%", forecast_3d_data.find_value(ElementValueKey::PROBABILITY_OF_PRECIPITATION, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Weather: %s", forecast_3d_data.find_value(ElementValueKey::WEATHER, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Weather Description: %s", forecast_3d_data.find_value(ElementValueKey::WEATHER_DESCRIPTION, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Weather Code: %s", forecast_3d_data.find_value(ElementValueKey::WEATHER_CODE, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Weather Icon: %s", forecast_3d_data.find_value(ElementValueKey::WEATHER_ICON, fallback, now.to_c_tm()).c_str());
+          ESP_LOGI("forecast", "  Temperature: %s°C", forecast_3d_data.find_value(ElementValueKey::TEMPERATURE, fallback, now.to_c_tm()).c_str()); //需要
+          //ESP_LOGI("forecast", "  Dew Point: %s°C", forecast_3d_data.find_value(ElementValueKey::DEW_POINT, fallback, now.to_c_tm()).c_str());
+          ESP_LOGI("forecast", "  Apparent Temperature: %s°C", forecast_3d_data.find_value(ElementValueKey::APPARENT_TEMPERATURE, fallback, now.to_c_tm()).c_str()); //需要
+          //ESP_LOGI("forecast", "  Comfort Index: %s", forecast_3d_data.find_value(ElementValueKey::COMFORT_INDEX, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Comfort Index Description: %s", forecast_3d_data.find_value(ElementValueKey::COMFORT_INDEX_DESCRIPTION, fallback, now.to_c_tm()).c_str());
+          ESP_LOGI("forecast", "  Relative Humidity: %s%%", forecast_3d_data.find_value(ElementValueKey::RELATIVE_HUMIDITY, fallback, now.to_c_tm()).c_str()); //需要
+          //ESP_LOGI("forecast", "  Wind Direction: %s", forecast_3d_data.find_value(ElementValueKey::WIND_DIRECTION, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Wind Speed: %s m/s", forecast_3d_data.find_value(ElementValueKey::WIND_SPEED, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Beaufort Scale: %s", forecast_3d_data.find_value(ElementValueKey::BEAUFORT_SCALE, fallback, now.to_c_tm()).c_str());
+          ESP_LOGI("forecast", "  Probability Of Precipitation: %s%%", forecast_3d_data.find_value(ElementValueKey::PROBABILITY_OF_PRECIPITATION, fallback, now.to_c_tm()).c_str()); //需要
+          //ESP_LOGI("forecast", "  Weather: %s", forecast_3d_data.find_value(ElementValueKey::WEATHER, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Weather Description: %s", forecast_3d_data.find_value(ElementValueKey::WEATHER_DESCRIPTION, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Weather Code: %s", forecast_3d_data.find_value(ElementValueKey::WEATHER_CODE, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Weather Icon: %s", forecast_3d_data.find_value(ElementValueKey::WEATHER_ICON, fallback, now.to_c_tm()).c_str());
           ESP_LOGI("forecast", "");
 
           ESP_LOGI("forecast", "Today's Forecast(From now until midnight):");
@@ -401,27 +400,27 @@ script:
           ESP_LOGI("forecast", "Current Forecast(Day/Night):");
           ESP_LOGI("forecast", "  LocationsName: %s", forecast_7d_data.locations_name.c_str());
           ESP_LOGI("forecast", "  LocationName: %s", forecast_7d_data.location_name.c_str());
-          ESP_LOGI("forecast", "  Avg Temperature: %s°C", forecast_7d_data.find_value(ElementValueKey::TEMPERATURE, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Avg Dew Point: %s°C", forecast_7d_data.find_value(ElementValueKey::DEW_POINT, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Avg Relative Humidity: %s%%", forecast_7d_data.find_value(ElementValueKey::RELATIVE_HUMIDITY, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Max Temperature: %s°C", forecast_7d_data.find_value(ElementValueKey::MAX_TEMPERATURE, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Min Temperature: %s°C", forecast_7d_data.find_value(ElementValueKey::MIN_TEMPERATURE, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Max Apparent Temperature: %s°C", forecast_7d_data.find_value(ElementValueKey::MAX_APPARENT_TEMPERATURE, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Min Apparent Temperature: %s°C", forecast_7d_data.find_value(ElementValueKey::MIN_APPARENT_TEMPERATURE, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Max Comfort Index: %s", forecast_7d_data.find_value(ElementValueKey::MAX_COMFORT_INDEX, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Min Comfort Index: %s", forecast_7d_data.find_value(ElementValueKey::MIN_COMFORT_INDEX, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Max Comfort Index Description: %s", forecast_7d_data.find_value(ElementValueKey::MAX_COMFORT_INDEX_DESCRIPTION, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Min Comfort Index Description: %s", forecast_7d_data.find_value(ElementValueKey::MIN_COMFORT_INDEX_DESCRIPTION, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Probability Of Precipitation: %s%%", forecast_7d_data.find_value(ElementValueKey::PROBABILITY_OF_PRECIPITATION, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  UV Index: %s", forecast_7d_data.find_value(ElementValueKey::UV_INDEX, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  UV Exposure Level: %s", forecast_7d_data.find_value(ElementValueKey::UV_EXPOSURE_LEVEL, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Weather: %s", forecast_7d_data.find_value(ElementValueKey::WEATHER, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Weather Code: %s", forecast_7d_data.find_value(ElementValueKey::WEATHER_CODE, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Weather Icon: %s", forecast_7d_data.find_value(ElementValueKey::WEATHER_ICON, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Weather Description: %s", forecast_7d_data.find_value(ElementValueKey::WEATHER_DESCRIPTION, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Wind Direction: %s", forecast_7d_data.find_value(ElementValueKey::WIND_DIRECTION, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Wind Speed: %s m/s", forecast_7d_data.find_value(ElementValueKey::WIND_SPEED, fallback, now.to_c_tm()).c_str());
-          ESP_LOGI("forecast", "  Beaufort Scale: %s", forecast_7d_data.find_value(ElementValueKey::BEAUFORT_SCALE, fallback, now.to_c_tm()).c_str());
+          ESP_LOGI("forecast", "  Avg Temperature: %s°C", forecast_7d_data.find_value(ElementValueKey::TEMPERATURE, fallback, now.to_c_tm()).c_str());  //需要
+          //ESP_LOGI("forecast", "  Avg Dew Point: %s°C", forecast_7d_data.find_value(ElementValueKey::DEW_POINT, fallback, now.to_c_tm()).c_str());
+          ESP_LOGI("forecast", "  Avg Relative Humidity: %s%%", forecast_7d_data.find_value(ElementValueKey::RELATIVE_HUMIDITY, fallback, now.to_c_tm()).c_str()); //需要
+          ESP_LOGI("forecast", "  Max Temperature: %s°C", forecast_7d_data.find_value(ElementValueKey::MAX_TEMPERATURE, fallback, now.to_c_tm()).c_str());  //需要
+          ESP_LOGI("forecast", "  Min Temperature: %s°C", forecast_7d_data.find_value(ElementValueKey::MIN_TEMPERATURE, fallback, now.to_c_tm()).c_str());  //需要
+          ESP_LOGI("forecast", "  Max Apparent Temperature: %s°C", forecast_7d_data.find_value(ElementValueKey::MAX_APPARENT_TEMPERATURE, fallback, now.to_c_tm()).c_str()); //需要
+          ESP_LOGI("forecast", "  Min Apparent Temperature: %s°C", forecast_7d_data.find_value(ElementValueKey::MIN_APPARENT_TEMPERATURE, fallback, now.to_c_tm()).c_str()); //需要
+          //ESP_LOGI("forecast", "  Max Comfort Index: %s", forecast_7d_data.find_value(ElementValueKey::MAX_COMFORT_INDEX, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Min Comfort Index: %s", forecast_7d_data.find_value(ElementValueKey::MIN_COMFORT_INDEX, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Max Comfort Index Description: %s", forecast_7d_data.find_value(ElementValueKey::MAX_COMFORT_INDEX_DESCRIPTION, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Min Comfort Index Description: %s", forecast_7d_data.find_value(ElementValueKey::MIN_COMFORT_INDEX_DESCRIPTION, fallback, now.to_c_tm()).c_str());
+          ESP_LOGI("forecast", "  Probability Of Precipitation: %s%%", forecast_7d_data.find_value(ElementValueKey::PROBABILITY_OF_PRECIPITATION, fallback, now.to_c_tm()).c_str()); //需要
+          //ESP_LOGI("forecast", "  UV Index: %s", forecast_7d_data.find_value(ElementValueKey::UV_INDEX, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  UV Exposure Level: %s", forecast_7d_data.find_value(ElementValueKey::UV_EXPOSURE_LEVEL, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Weather: %s", forecast_7d_data.find_value(ElementValueKey::WEATHER, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Weather Code: %s", forecast_7d_data.find_value(ElementValueKey::WEATHER_CODE, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Weather Icon: %s", forecast_7d_data.find_value(ElementValueKey::WEATHER_ICON, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Weather Description: %s", forecast_7d_data.find_value(ElementValueKey::WEATHER_DESCRIPTION, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Wind Direction: %s", forecast_7d_data.find_value(ElementValueKey::WIND_DIRECTION, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Wind Speed: %s m/s", forecast_7d_data.find_value(ElementValueKey::WIND_SPEED, fallback, now.to_c_tm()).c_str());
+          //ESP_LOGI("forecast", "  Beaufort Scale: %s", forecast_7d_data.find_value(ElementValueKey::BEAUFORT_SCALE, fallback, now.to_c_tm()).c_str());
           ESP_LOGI("forecast", "");
 
           // see https://www.cwa.gov.tw/V8/C/W/Town/Town.html?TID=6500300
