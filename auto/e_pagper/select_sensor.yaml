@@ -53,12 +53,12 @@ select:
       - daily_temp_high_low
       - daily_feel_high_low
       - daily_avg_temp_humid   
-      - daily_avg_temp_rainy     
+      - daily_avg_temp_rainy   
+      - daily_avg_temp_uv  
       - hourly_temp_humid
       - hourly_temp_rainy 
       - hourly_feel_rainy  
     initial_option: daily_temp_high_low 
-
 
 sensor:
   - platform: cwa_town_forecast
@@ -92,7 +92,26 @@ sensor:
       name: "3D Probability Of Precipitation (3H)"
       id: d3_probability_of_precipitation_3h
       internal: true
-
+      on_value:
+        then:
+          - if:
+              condition:
+                lambda: |-
+                  return id(rainy_red_led).state;
+              then:
+                - if:
+                    condition:
+                      lambda: |-
+                        return x >= 20;
+                    then:
+                      - light.turn_on:
+                          id: behind_led
+                          effect: "Rainy Red Pulse"
+                    else:
+                      - light.turn_off: behind_led
+              else:
+                - light.turn_off: behind_led  # switch 關掉時強制熄燈
+                
   - platform: cwa_town_forecast
     cwa_town_forecast_id: town_forecast_7d
     mode: 7-DAYS
@@ -143,9 +162,7 @@ sensor:
     uv_index:
       name: "7D UV Index"  # 使用
       id: d7_uv_index
-      internal: true
-   
-
+      internal: true   
 
 text_sensor:
 #   - platform: cwa_town_forecast
