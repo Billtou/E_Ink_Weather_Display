@@ -17,3 +17,16 @@
     psram:
       mode: octal
       speed: 80MHz
+8MB
+      
+      esp32:
+        board: esp32-s3-devkitc-1
+        variant: esp32s3
+        flash_size: 8MB
+        framework:
+          type: arduino
+      
+      psram:
+        mode: quad
+        speed: 80MHz  
+        
